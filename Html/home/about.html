@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giới Thiệu | DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* =======================================================
+            BIẾN MÀU SẮC & KHUNG NỀN (GIỮ NGUYÊN STYLE CỦA M)
+        ======================================================= */
+        :root {
+            --primary: #00d2ff; --secondary: #ff00cc; --accent: #ff4d6d;
+            --glass: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --bg-gradient: linear-gradient(135deg, #1a0a2e 0%, #4a1a4a 50%, #8a2a5a 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: var(--bg-gradient); background-attachment: fixed; color: white; min-height: 100vh; overflow-x: hidden; }
+
+        /* NỘI DUNG TRANG GIỚI THIỆU */
+        .intro-hero { padding: 80px 8% 40px; text-align: center; }
+        .intro-hero h1 { font-size: 55px; font-weight: 900; text-transform: uppercase; margin-bottom: 25px; }
+        .intro-hero p { font-size: 18px; color: #ccc; max-width: 900px; margin: 0 auto; line-height: 1.8; }
+
+        .team-section { padding: 40px 8%; }
+        .section-title { text-align: center; font-size: 36px; font-weight: 900; margin-bottom: 60px; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 40px; }
+        .team-card { background: var(--glass); border-radius: 35px; padding: 50px 20px; border: 1px solid var(--glass-border); text-align: center; backdrop-filter: blur(15px); transition: 0.4s; }
+        .team-card:hover { transform: translateY(-15px); border-color: var(--primary); background: rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0, 210, 255, 0.1); }
+        
+        .avatar-box { width: 130px; height: 130px; border-radius: 50%; margin: 0 auto 25px; border: 3px solid var(--primary); padding: 6px; overflow: hidden; background: rgba(0,0,0,0.3); }
+        .avatar-box img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+        .team-card h3 { font-size: 22px; margin-bottom: 10px; font-weight: 800; }
+        .team-card p { font-size: 14px; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+
+        .tech-section { background: rgba(0,0,0,0.3); padding: 80px 8%; margin-top: 50px; border-top: 1px solid var(--glass-border); }
+        .tech-grid { display: flex; justify-content: center; gap: 60px; flex-wrap: wrap; margin-top: 50px; }
+        .tech-item { text-align: center; width: 160px; transition: 0.3s; }
+        .tech-item:hover { transform: scale(1.1); color: var(--primary); }
+        .tech-item i { font-size: 60px; color: var(--primary); margin-bottom: 20px; }
+        .tech-item b { display: block; font-size: 18px; font-weight: 700; }
+    </style>
+    
+    <link rel="stylesheet" href="../../CSS/header.css">
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+
+<section class="intro-hero">
+    <h1>Về Chúng Tôi</h1>
+    <p>Hệ thống <span style="color: var(--primary); font-weight: 800;">DHTA ACADEMY</span> là nền tảng học tập trực tuyến tiên phong dành cho thế hệ sinh viên công nghệ mới. Chúng tôi cung cấp lộ trình học bài bản, môi trường thực chiến và cộng đồng hỗ trợ 24/7 để mài dũa những kỹ năng IT đỉnh cao.</p>
+</section>
+
+<section class="team-section">
+    <h2 class="section-title">Đội ngũ phát triển (Nhóm 10)</h2>
+    <div class="team-grid">
+        <div class="team-card">
+            <div class="avatar-box">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Du" alt="Dương Chí Du">
+            </div>
+            <h3>Dương Chí Du</h3>
+            <p>Team Leader / Backend Developer</p>
+        </div>
+
+        <div class="team-card">
+            <div class="avatar-box">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Hieu" alt="Đinh Văn Hiếu">
+            </div>
+            <h3>Đinh Văn Hiếu</h3>
+            <p>UI/UX Designer</p>
+        </div>
+
+        <div class="team-card">
+            <div class="avatar-box">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Tuan" alt="Nguyễn Mạnh Tuấn">
+            </div>
+            <h3>Nguyễn Mạnh Tuấn</h3>
+            <p>Frontend Developer</p>
+        </div>
+
+        <div class="team-card">
+            <div class="avatar-box">
+                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Anh" alt="Nguyễn Công Quyền Anh">
+            </div>
+            <h3>Nguyễn Công Quyền Anh</h3>
+            <p>Database Admin</p>
+        </div>
+    </div>
+</section>
+
+<section class="tech-section">
+    <h2 class="section-title">Công nghệ cốt lõi</h2>
+    <div class="tech-grid">
+        <div class="tech-item"><i class="fab fa-python"></i><b>Python Flask</b></div>
+        <div class="tech-item"><i class="fas fa-database"></i><b>SQL Server</b></div>
+        <div class="tech-item"><i class="fab fa-html5"></i><b>HTML5 / CSS3</b></div>
+        <div class="tech-item"><i class="fab fa-js"></i><b>JavaScript ES6</b></div>
+    </div>
+</section>
+
+<footer style="padding: 60px; text-align: center; opacity: 0.6; font-size: 14px; border-top: 1px solid rgba(255,255,255,0.05);">
+    &copy; 2026 Nhóm sinh viên Nhóm 10 - K23CNT2 - Đại học Nguyễn Trãi. <br>
+    Hệ thống được phát triển phục vụ mục đích đồ án cuối khóa.
+</footer>
+
+<script>
+    // 1. HÀM LOAD HEADER DÙNG CHUNG
+    async function loadSharedHeader() {
+        try {
+            const response = await fetch('../layout/header.html');
+            if (!response.ok) throw new Error('Không tìm thấy file header.html');
+            const data = await response.text();
+            
+            document.getElementById('header-placeholder').innerHTML = data;
+            
+            // Highlight menu "Giới thiệu"
+            const menuItems = document.querySelectorAll('.nav-links-dhta li');
+            menuItems.forEach(li => {
+                if(li.innerText.includes('Giới thiệu')) {
+                    li.style.color = "#ff00cc"; // Màu hồng DHTA
+                }
+            });
+
+            checkAuth(); 
+        } catch (err) {
+            console.error("Lỗi load header:", err);
+        }
+    }
+
+    // 2. CẬP NHẬT GIỎ HÀNG (Số 0 màu hồng)
+    function updateCartBadge() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const badge = document.getElementById('cart-count');
+        if (badge) {
+            badge.innerText = cart.length;
+            badge.style.display = 'flex';
+        }
+    }
+
+    // 3. KIỂM TRA ĐĂNG NHẬP
+    function checkAuth() {
+        const userStr = localStorage.getItem('user');
+        const navAuth = document.getElementById('nav-auth');
+        
+        if (userStr && navAuth) {
+            const user = JSON.parse(userStr);
+            navAuth.innerHTML = `
+                <div class="cart-wrapper" onclick="location.href='cart.html'">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-badge" id="cart-count">0</span>
+                </div>
+                <span class="user-info" style="color:white; margin:0 10px;">Chào, ${user.username}</span>
+                <span class="separator" style="color:#333;">|</span>
+                <button class="btn-logout-nav" onclick="handleLogout()" style="border:1px solid #ff4d6d; color:#ff4d6d; background:none; padding:5px 12px; border-radius:20px; cursor:pointer; font-weight:700;">Đăng xuất</button>
+            `;
+            updateCartBadge();
+        } else if (navAuth) {
+            navAuth.innerHTML = `<a href="../account/login.html" style="color:#fff; text-decoration:none; font-weight:700; font-size:15px;">Đăng nhập</a>`;
+        }
+    }
+
+    function handleLogout() {
+        localStorage.removeItem('user');
+        window.location.href = 'index.html';
+    }
+
+    // KHỞI CHẠY
+    window.onload = loadSharedHeader;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="vi">
+    
+<head>
+    <meta charset="UTF-8">
+    <title>Làm bài | DHTA ACADEMY</title>
+
+    <link rel="stylesheet" href="../../CSS/main.css">
+    <link rel="stylesheet" href="../../CSS/exam.css">
+    <style>
+        /* CSS bổ trợ để phần hiển thị câu hỏi và kết quả đồng bộ tone màu */
+        .quiz-question-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .quiz-question-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+        .quiz-options-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .quiz-option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .quiz-option-item:hover {
+            background: rgba(0, 210, 255, 0.08);
+            border-color: #00d2ff;
+        }
+        .quiz-option-item input {
+            accent-color: #00d2ff;
+            cursor: pointer;
+        }
+        #result-box {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(0, 210, 255, 0.05);
+            border: 2px solid #00d2ff;
+            border-radius: 15px;
+            text-align: center;
+        }
+        #result-box h3 { font-size: 24px; color: #ff00ea; margin-bottom: 10px; }
+        #result-box p { font-size: 18px; color: #fff; }
+    </style>
+</head>
+
+<body>
+<div id="confirmModal" class="confirm-modal">
+    <div class="confirm-box">
+        <h3>⚠️ Thoát bài thi?</h3>
+        <p>Bạn có chắc muốn thoát? Tiến trình sẽ mất.</p>
+
+        <div class="confirm-actions">
+            <button class="btn-cancel" onclick="closeConfirm()">Hủy</button>
+            <button class="btn-ok" onclick="confirmExit()">Thoát</button>
+        </div>
+    </div>
+</div>
+
+<div class="exam-container">
+    <button class="btn-back" onclick="goBack()">⬅ Quay lại</button>
+    <div class="timer">⏱️ Thời gian: <span id="time">00:00</span></div>
+    <div class="progress-bar">
+        <div id="progress"></div>
+    </div>
+
+    <h2 id="exam-main-title">Làm bài tập</h2>
+
+    <div id="quiz">
+        </div>
+
+    <button id="btn-submit-quiz" onclick="submitQuiz()" style="margin-top: 20px;">Nộp bài</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    const API_URL = "http://127.0.0.1:5001/api";
+    let currentQuestions = [];
+    let countdownTimer = null;
+    let totalSeconds = 0;
+    let initialSeconds = 0;
+
+    // 1. TẢI ĐỀ THI TỪ DATABASE KHI LOAD TRANG
+    async function loadQuizData() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const quizId = urlParams.get('id');
+
+        if (!quizId) {
+            alert("Không tìm thấy ID bài luyện tập!");
+            window.location.href = 'training.html';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/quiz/${quizId}`);
+            if (!response.ok) {
+                document.getElementById('quiz').innerHTML = `<p style="color: #ff4d6d; text-align:center; font-size:18px;">❌ Không tìm thấy dữ liệu bài tập trong hệ thống!</p>`;
+                document.getElementById('btn-submit-quiz').style.display = 'none';
+                return;
+            }
+
+            const quizData = await response.json();
+            
+            // Cập nhật Tiêu đề bài kiểm tra
+            document.getElementById('exam-main-title').innerText = quizData.title;
+            
+            // Lưu danh sách câu hỏi
+            currentQuestions = quizData.questions;
+            
+            // Thiết lập đồng hồ đếm ngược (đổi số phút từ DB ra giây)
+            totalSeconds = quizData.duration * 60;
+            initialSeconds = totalSeconds;
+            
+            // Khởi chạy giao diện
+            startTimer();
+            renderQuestions();
+
+        } catch (error) {
+            console.error("Lỗi fetch đề thi:", error);
+            document.getElementById('quiz').innerHTML = `<p style="color: #ff4d6d; text-align:center;">Lỗi kết nối Server!</p>`;
+        }
+    }
+
+    // 2. HIỂN THỊ CÂU HỎI LÊN GIAO DIỆN
+    function renderQuestions() {
+        const quizContainer = document.getElementById('quiz');
+        if (currentQuestions.length === 0) {
+            quizContainer.innerHTML = "<p style='text-align:center;'>Bài luyện tập này hiện chưa có câu hỏi.</p>";
+            return;
+        }
+
+        quizContainer.innerHTML = currentQuestions.map((qData, qIdx) => {
+            const optionsHtml = qData.options.map((optText, oIdx) => `
+                <li>
+                    <label class="quiz-option-item">
+                        <input type="radio" name="question-${qIdx}" value="${oIdx}">
+                        <span>${optText}</span>
+                    </label>
+                </li>
+            `).join('');
+
+            return `
+                <div class="quiz-question-box">
+                    <div class="quiz-question-title">Câu ${qIdx + 1}: ${qData.q} <span style="color:var(--cyan); font-size:14px;">(${qData.point}đ)</span></div>
+                    <ul class="quiz-options-list">
+                        ${optionsHtml}
+                    </ul>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 3. ĐỒNG HỒ ĐẾM NGƯỢC & THANH TIẾN ĐỘ
+    function startTimer() {
+        const timeDisplay = document.getElementById('time');
+        const progressBar = document.getElementById('progress');
+
+        countdownTimer = setInterval(() => {
+            if (totalSeconds <= 0) {
+                clearInterval(countdownTimer);
+                timeDisplay.innerText = "00:00";
+                progressBar.style.width = "100%";
+                alert("⏰ Đã hết thời gian làm bài! Hệ thống tự động nộp bài.");
+                submitQuiz();
+                return;
+            }
+
+            totalSeconds--;
+            
+            // Định dạng hiển thị phút:giây
+            const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+            const secs = (totalSeconds % 60).toString().padStart(2, '0');
+            timeDisplay.innerText = `${mins}:${secs}`;
+
+            // Cập nhật thanh tiến độ co dãn theo thời gian trôi qua
+            const progressPercent = ((initialSeconds - totalSeconds) / initialSeconds) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+        }, 1000);
+    }
+
+    // 4. LOGIC NỘP BÀI & TỰ ĐỘNG CHẤM ĐIỂM THEO HỆ SỐ POINT
+    function submitQuiz() {
+        clearInterval(countdownTimer); // Dừng đồng hồ
+
+        let totalScore = 0;
+        let userScore = 0;
+        let correctCount = 0;
+
+        currentQuestions.forEach((qData, qIdx) => {
+            totalScore += qData.point; // Cộng dồn tổng điểm tối đa của đề thi
+            
+            const selectedOpt = document.querySelector(`input[name="question-${qIdx}"]:checked`);
+            if (selectedOpt) {
+                const answerIndex = parseInt(selectedOpt.value);
+                if (answerIndex === qData.answer) {
+                    userScore += qData.point; // Trúng đáp án đúng thì cộng điểm của câu đó vào
+                    correctCount++;
+                }
+            }
+        });
+
+        // Hiển thị khung kết quả trực quan ra màn hình
+        document.getElementById('result').innerHTML = `
+            <div id="result-box">
+                <h3>🎉 KẾT QUẢ BÀI LÀM</h3>
+                <p>Số câu trả lời đúng: <strong>${correctCount} / ${currentQuestions.length}</strong> câu</p>
+                <p>Điểm số đạt được: <strong style="color:#00d2ff; font-size:24px;">${userScore.toFixed(1)}</strong> / <strong>${totalScore.toFixed(1)}</strong> điểm</p>
+                <button onclick="location.href='training.html'" class="btn-ok" style="margin-top:15px; padding:10px 20px; border-radius:8px; cursor:pointer; background:#ff00ea; color:#fff; border:none; font-weight:bold;">Hoàn tất</button>
+            </div>
+        `;
+
+        // Cuộn màn hình xuống khu vực hiển thị kết quả
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('btn-submit-quiz').disabled = true;
+    }
+
+    // 5. ĐIỀU HƯỚNG & MODAL XÁC NHẬN THOÁT
+    function goBack() {
+        // Hiện Modal cảnh báo
+        document.getElementById('confirmModal').style.display = 'flex';
+    }
+
+    function closeConfirm() {
+        // Đóng Modal cảnh báo
+        document.getElementById('confirmModal').style.display = 'none';
+    }
+
+    function confirmExit() {
+        // Xác nhận thoát thì quay về trang quản lý luyện tập
+        window.location.href = 'training.html';
+    }
+
+    window.onload = loadQuizData;
+</script>
+</body>
+</html>

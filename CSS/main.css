@@ -1,0 +1,174 @@
+/* =======================================================
+   1. GLOBAL & VARIABLES
+======================================================= */
+:root {
+    --primary: #00d2ff;     /* Xanh Cyan sáng */
+    --secondary: #ff00cc;   /* Hồng Neon */
+    --accent: #ff4d6d;
+    --glass: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --bg-gradient: linear-gradient(135deg, #1a0a2e 0%, #4a1a4a 50%, #8a2a5a 100%);
+}
+
+* {
+    margin: 0; padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    color: white;
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.6; /* Tăng độ thoáng cho văn bản */
+}
+
+a { text-decoration: none; color: inherit; transition: 0.3s; }
+.hidden { display: none !important; }
+
+/* =======================================================
+   2. NAVBAR (ĐÃ FIX LỖI LỆCH)
+======================================================= */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5%; /* Giảm padding một chút để Menu có không gian */
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    height: 85px;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.logo {
+    flex: 0 0 200px; /* Cố định độ rộng để menu không bị đẩy lệch */
+    font-weight: 900;
+    font-size: 26px;
+    letter-spacing: 1px;
+    background: linear-gradient(to right, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-transform: uppercase;
+}
+
+.menu { 
+    display: flex; 
+    gap: 20px; 
+    list-style: none; 
+    flex: 1; 
+    justify-content: center; /* Ép menu nằm chính giữa màn hình */
+}
+
+.menu li {
+    font-size: 14px;
+    font-weight: 600;
+    color: #efefef;
+    white-space: nowrap;
+    position: relative;
+}
+
+.menu li:hover, .menu li.active { color: var(--primary); }
+
+.auth { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    flex: 0 0 250px; /* Đối xứng với logo để menu cân bằng */
+    justify-content: flex-end;
+}
+
+.user-name { color: var(--primary); font-weight: bold; font-size: 14px; }
+
+.btn-logout {
+    color: var(--accent) !important;
+    border: 1px solid var(--accent);
+    padding: 6px 15px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    transition: 0.3s;
+}
+.btn-logout:hover { background: var(--accent); color: white !important; }
+
+/* =======================================================
+   3. COURSE CARDS & HERO
+======================================================= */
+.hero { display: flex; align-items: center; padding: 60px 8%; gap: 60px; }
+.hero-left h1 { font-size: 52px; font-weight: 900; line-height: 1.1; margin-bottom: 25px; }
+
+.course-card {
+    background: var(--glass);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border);
+    border-radius: 25px;
+    padding: 25px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    transition: 0.4s;
+}
+
+.course-card:hover {
+    transform: translateY(-10px);
+    border-color: var(--primary);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+/* Đẩy nút bấm xuống đáy đồng đều */
+.btn-enroll {
+    margin-top: auto;
+    padding: 14px;
+    border-radius: 15px;
+    background: var(--primary);
+    color: #000;
+    font-weight: 800;
+    border: none;
+}
+
+/* =======================================================
+   4. SOCIAL LOGIN (FIX DÀN HÀNG NGANG)
+======================================================= */
+.social-icons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 15px;
+}
+
+.icon {
+    width: 45px; height: 45px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--glass-border);
+    font-size: 20px;
+}
+.icon:hover {
+    background: var(--primary);
+    color: #000;
+    transform: scale(1.1);
+}
+
+
+
+
+.page {
+    display: none;
+    animation: fade 0.3s ease;
+}
+
+.page.active {
+    display: block;
+}
+
+@keyframes fade {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

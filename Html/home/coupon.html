@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kho Ưu Đãi | DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../CSS/coupon.css">
+    <link rel="stylesheet" href="../../CSS/header.css">
+    
+    <style>
+        /* Tớ bồi thêm một chút style cho mini-game mượt hơn */
+        .hack-display {
+            transition: all 0.2s ease;
+            text-shadow: 0 0 10px #ff00cc;
+        }
+        .btn-hack:disabled {
+            background: #444;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .coupon-card.mine {
+            border-left: 4px solid #00ff00;
+        }
+        .loading-text {
+            color: #00d2ff;
+            text-align: center;
+            width: 100%;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+
+<div class="container">
+    
+    <section class="game-section">
+        <h2 class="game-title">Cyber Hack Reward</h2>
+        <p style="color: #aaa; margin-bottom: 20px;">Xâm nhập hệ thống để lấy mã giảm giá ngẫu nhiên từ Database</p>
+        
+        <div class="hack-display" id="hackResult">??????</div>
+        
+        <button class="btn-hack" id="hackBtn" onclick="startHack()">BẮT ĐẦU HACK</button>
+        <p id="hackStatus" style="margin-top: 15px; color: #00d2ff; font-family: monospace; font-size: 13px; min-height: 20px;"></p>
+    </section>
+
+    <h3 class="list-header my-codes">Kho mã đã hack</h3>
+    <div class="coupon-grid" id="myCouponsList">
+        <p class="empty-text">M chưa hack được mã nào. Thử vận may ở trên đi Tuấn!</p>
+    </div>
+
+    <h3 class="list-header">Ưu đãi cộng đồng (Dữ liệu thật)</h3>
+    <div class="coupon-grid" id="communityCoupons">
+        <div class="loading-text">Đang kết nối database nhóm 10...</div>
+    </div>
+</div>
+
+<script>
+    // Cổng server m đang chạy (5001)
+    const API_URL = "http://127.0.0.1:5001/api/admin/vouchers";
+    let dbCoupons = []; // Biến chứa dữ liệu thật từ SQL Server
+
+    // 1. HÀM LOAD HEADER & KHỞI TẠO DỮ LIỆU
+    async function loadSharedHeader() {
+        try {
+            const response = await fetch('../layout/header.html');
+            const data = await response.text();
+            document.getElementById('header-placeholder').innerHTML = data;
+            
+            // Đồng bộ dữ liệu từ SQL Server ngay khi load trang
+            await syncDatabase();
+            
+            checkAuth(); 
+            renderMyCoupons();
+        } catch (err) {
+            console.error("Lỗi khởi tạo trang:", err);
+        }
+    }
+
+    // 2. ĐỒNG BỘ VỚI DATABASE SQL SERVER
+    async function syncDatabase() {
+        try {
+            const res = await fetch(API_URL);
+            dbCoupons = await res.json();
+            
+            // Hiển thị mã ra phần "Ưu đãi cộng đồng"
+            renderCommunityCoupons();
+        } catch (e) {
+            console.error("Lỗi gọi API app.py:", e);
+            document.getElementById('communityCoupons').innerHTML = '<p style="color:red;">Lỗi kết nối Backend app.py r m ơi!</p>';
+        }
+    }
+
+    // 3. HIỂN THỊ MÃ CỘNG ĐỒNG (TỪ DB THẬT)
+    function renderCommunityCoupons() {
+        const grid = document.getElementById('communityCoupons');
+        if (dbCoupons.length === 0) {
+            grid.innerHTML = '<p class="empty-text">Database đang trống mã giảm giá.</p>';
+            return;
+        }
+
+        grid.innerHTML = dbCoupons.map(c => `
+            <div class="coupon-card">
+                <div class="coupon-val">${c.discount}% OFF</div>
+                <span class="coupon-code-label">${c.code}</span>
+                <p class="coupon-info">Áp dụng đến: ${c.expiry}. Số lượng còn lại: ${c.limit}</p>
+                <button class="btn-copy" onclick="copyCode('${c.code}')" style="width: 100%;">SAO CHÉP MÃ</button>
+            </div>
+        `).join('');
+    }
+
+    // 4. LOGIC MINI-GAME: HACK MÃ TỪ DATABASE
+    function startHack() {
+        if (dbCoupons.length === 0) return alert("Database trống, không có gì để hack m ơi!");
+
+        const btn = document.getElementById('hackBtn');
+        const display = document.getElementById('hackResult');
+        const status = document.getElementById('hackStatus');
+        
+        btn.disabled = true;
+        status.innerText = "> Đang thâm nhập hệ thống DHTA Academy...";
+        display.style.color = "#ff00cc";
+
+        let count = 0;
+        const interval = setInterval(() => {
+            // Hiệu ứng chạy mã ngẫu nhiên
+            display.innerText = Math.random().toString(36).substring(2, 8).toUpperCase();
+            count++;
+
+            if(count > 25) {
+                clearInterval(interval);
+                
+                // LẤY NGẪU NHIÊN 1 MÃ TỪ KHO DATABASE THẬT
+                const prize = dbCoupons[Math.floor(Math.random() * dbCoupons.length)];
+                
+                display.innerText = prize.code;
+                display.style.color = "#00ff00";
+                status.innerText = `> Hack thành công! M nhận được mã giảm ${prize.discount}%`;
+                
+                // Lưu vào "Kho mã của tôi"
+                saveCoupon({ code: prize.code, desc: `Mã giảm giá ${prize.discount}% hack được từ DB` });
+                btn.disabled = false;
+            }
+        }, 70);
+    }
+
+    // --- CÁC HÀM XỬ LÝ KHO MÃ CÁ NHÂN ---
+    function saveCoupon(couponObj) {
+        let myCoupons = JSON.parse(localStorage.getItem('myCoupons')) || [];
+        if (!myCoupons.find(c => c.code === couponObj.code)) {
+            myCoupons.push(couponObj);
+            localStorage.setItem('myCoupons', JSON.stringify(myCoupons));
+        }
+        renderMyCoupons();
+    }
+
+    function renderMyCoupons() {
+        const list = document.getElementById('myCouponsList');
+        const myCoupons = JSON.parse(localStorage.getItem('myCoupons')) || [];
+
+        if (myCoupons.length === 0) return;
+
+        list.innerHTML = myCoupons.map(c => `
+            <div class="coupon-card mine">
+                <div class="coupon-val">HACKED</div>
+                <span class="coupon-code-label">${c.code}</span>
+                <p class="coupon-info">${c.desc}</p>
+                <div class="btn-group" style="display:flex; gap:5px; margin-top:15px;">
+                    <button class="btn-copy" onclick="copyCode('${c.code}')" style="flex:1;">SAO CHÉP</button>
+                    <button onclick="deleteCoupon('${c.code}')" style="background:none; border:1px solid #ff4d6d; color:#ff4d6d; border-radius:8px; width:40px; cursor:pointer;">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function deleteCoupon(code) {
+        if(confirm(`Xóa mã ${code} khỏi kho của m nhé?`)) {
+            let myCoupons = JSON.parse(localStorage.getItem('myCoupons')) || [];
+            myCoupons = myCoupons.filter(c => c.code !== code);
+            localStorage.setItem('myCoupons', JSON.stringify(myCoupons));
+            renderMyCoupons();
+        }
+    }
+
+    // HÀM AUTH & CART (GIỮ NGUYÊN TỪ BẢN CŨ CỦA TUẤN)
+    function checkAuth() {
+        const userStr = localStorage.getItem('user');
+        const navAuth = document.getElementById('nav-auth');
+        if (userStr && navAuth) {
+            const user = JSON.parse(userStr);
+            navAuth.innerHTML = `
+                <div class="cart-wrapper" onclick="location.href='cart.html'"><i class="fas fa-shopping-cart"></i><span class="cart-badge" id="cart-count">0</span></div>
+                <span style="color:white; margin:0 10px;">Chào, ${user.username}</span>
+                <button onclick="handleLogout()" style="border:1px solid #ff4d6d; color:#ff4d6d; background:none; padding:5px 12px; border-radius:20px; cursor:pointer;">Đăng xuất</button>
+            `;
+            updateCartBadge();
+        }
+    }
+
+    function updateCartBadge() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const badge = document.getElementById('cart-count');
+        if (badge) badge.innerText = cart.length;
+    }
+
+    function handleLogout() { localStorage.removeItem('user'); location.reload(); }
+
+    function copyCode(code) {
+        navigator.clipboard.writeText(code).then(() => alert("Đã copy mã: " + code));
+    }
+
+    window.onload = loadSharedHeader;
+</script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học tập - DHTA ACADEMY</title>
+
+    <link rel="stylesheet" href="../../CSS/main.css">
+    <link rel="stylesheet" href="../../CSS/learning.css">
+    <link rel="stylesheet" href="../../CSS/header.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+<div id="header-placeholder"></div>
+
+<div class="banner">
+    <h2>GIẢM GIÁ KHÓA HỌC</h2>
+    <p>Ưu đãi lên tới 50% cho học viên mới</p>
+</div>
+
+<div class="filter">
+    <div class="filter-wrapper">
+        <input type="text" id="searchInput" placeholder="Tìm kiếm kỹ năng bạn muốn học..." onkeyup="filterCourses()">
+        <button><i class="fas fa-search"></i></button>
+    </div>
+</div>
+
+<div class="courses" id="course-list">
+    <p style="text-align: center; width: 100%; color: #bdc3c7;">Đang tải danh sách khóa học...</p>
+</div>
+
+<script>
+    const API_URL = 'http://127.0.0.1:5001/api';
+    let allCourses = []; 
+
+    // 1. HÀM LOAD HEADER DÙNG CHUNG (QUAN TRỌNG)
+    async function loadSharedHeader() {
+        try {
+            const response = await fetch('../layout/header.html');
+            const data = await response.text();
+            document.getElementById('header-placeholder').innerHTML = data;
+
+            // Highlight menu "Học tập"
+            const menuItems = document.querySelectorAll('.menu li');
+            menuItems.forEach(li => {
+                if(li.getAttribute('onclick')?.includes('learning.html')) {
+                    li.style.color = "var(--primary)"; // Hoặc dùng class active nếu m đã định nghĩa
+                }
+            });
+
+            // Sau khi Header có trên màn hình mới chạy được checkAuth và fetchCourses
+            checkAuth();
+            fetchCourses();
+        } catch (err) {
+            console.error("Lỗi load Header rồi m ơi!");
+        }
+    }
+
+    // 2. FIX: Cập nhật số lượng giỏ hàng
+    function updateCartBadge() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const badge = document.getElementById('cart-count');
+        if (badge) {
+            badge.innerText = cart.length;
+            badge.style.display = 'block'; 
+        }
+    }
+
+    function checkAuth() {
+        const userStr = localStorage.getItem('user');
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const navAuth = document.getElementById('nav-auth');
+
+        if (userStr && navAuth) {
+            const user = JSON.parse(userStr);
+            navAuth.innerHTML = `
+                <div class="cart-wrapper" onclick="location.href='cart.html'">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-badge" id="cart-count">0</span>
+                </div>
+                <span class="user-info" style="color: white; margin: 0 10px;">Chào, ${user.username}</span>
+                <span class="separator">|</span>
+                <button class="btn-logout-nav" onclick="handleLogout()" style="border:1px solid #ff4d6d; color:#ff4d6d; background:none; padding:5px 10px; border-radius:20px; cursor:pointer;">Đăng xuất</button>
+            `;
+            updateCartBadge(); 
+        } else if (navAuth) {
+            navAuth.innerHTML = `<a href="../account/login.html" style="color: white; text-decoration: none; font-weight: 700; font-size: 15px;">Đăng nhập</a>`;
+        }
+    }
+
+    function handleLogout() { localStorage.removeItem('user'); window.location.reload(); }
+
+    async function fetchCourses() {
+        try {
+            const res = await fetch(`${API_URL}/courses`);
+            const data = await res.json();
+            if (data.status === "success") {
+                allCourses = data.data; 
+                renderCourses(allCourses);
+            }
+        } catch (error) {
+            document.getElementById('course-list').innerHTML = "<p style='color:#ff4757; text-align:center; width:100%;'>❌ Lỗi Server. Hãy bật app.py Nhóm 10 nhé!</p>";
+        }
+    }
+
+    function renderCourses(coursesData) {
+        const container = document.getElementById('course-list');
+        if(!container) return;
+        container.innerHTML = ''; 
+        coursesData.forEach(course => {
+            const priceDisplay = course.price == 0 ? 'Miễn phí' : `${Number(course.price).toLocaleString('vi-VN')} đ`;
+            const imgUrl = `https://placehold.jp/24/34495e/ffffff/250x140.png?text=${encodeURIComponent(course.title)}`;
+            container.innerHTML += `
+                <div class="course-card">
+                    <img src="${imgUrl}" alt="Course">
+                    <div class="category-tag">${course.category}</div>
+                    <h4>${course.title}</h4>
+                    <span class="price">${priceDisplay}</span>
+                    <button class="btn-enroll" onclick="location.href='course-detail.html?id=${course.id}'">Xem chi tiết</button>
+                </div>
+            `;
+        });
+    }
+
+    function filterCourses() {
+        const keyword = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = allCourses.filter(course => 
+            course.title.toLowerCase().includes(keyword) || 
+            course.category.toLowerCase().includes(keyword)
+        );
+        renderCourses(filtered);
+    }
+
+    // KHỞI CHẠY BẰNG HÀM LOAD HEADER
+    window.onload = loadSharedHeader;
+</script>
+
+</body>
+</html>

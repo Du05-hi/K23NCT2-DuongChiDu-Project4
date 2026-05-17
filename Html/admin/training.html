@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý luyện tập | Admin DHTA ACADEMY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css">
+    <style>
+        /* CSS bổ trợ để nút Sửa đẹp mắt, đồng bộ phong cách Cyber của m */
+        .btn-edit {
+            background: transparent;
+            border: 1px solid #00d2ff;
+            color: #00d2ff;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 6px;
+            transition: 0.3s;
+        }
+        .btn-edit:hover {
+            background: rgba(0, 210, 255, 0.1);
+            box-shadow: 0 0 8px rgba(0, 210, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <h2>ADMIN</h2>
+        <nav class="sidebar-nav" id="admin-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="courses.html"><i class="fas fa-book"></i> Khóa học</a>
+            <a href="training.html"><i class="fas fa-code"></i> Luyện tập</a>
+            <a href="events.html"><i class="fas fa-calendar-alt"></i> Sự kiện</a>
+            <a href="vouchers.html"><i class="fas fa-ticket-alt"></i> Mã giảm giá</a>
+            <a href="users.html"><i class="fas fa-users"></i> Khách hàng</a>
+            <a href="/Html/admin/orders.html"><i class="fas fa-shopping-cart"></i> Đơn hàng</a>
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="javascript:void(0)" onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header"><h1 class="page-title">QUẢN LÝ LUYỆN TẬP</h1></header>
+        <div class="add-form">
+            <input type="text" id="add-title" placeholder="Tên bài tập mới...">
+            <input type="number" id="add-time" placeholder="Phút">
+            <select id="add-diff"><option value="easy">DỄ</option><option value="medium">VỪA</option><option value="hard">KHÓ</option></select>
+            <button class="btn-main" onclick="handleAdd()">+ THÊM BÀI</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead><tr><th>ID</th><th>TÊN BÀI LUYỆN TẬP</th><th>THỜI GIAN</th><th>ĐỘ KHÓ</th><th style="text-align:center;">HÀNH ĐỘNG</th></tr></thead>
+                <tbody id="quiz-list"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        const path = window.location.pathname;
+        document.querySelectorAll('#admin-nav a').forEach(a => { if(path.includes(a.getAttribute('href'))) a.classList.add('active'); });
+
+        const API = "http://127.0.0.1:5001/api/admin/training";
+        let editId = null; // Biến dùng để kiểm tra xem đang ở chế độ Thêm mới hay Sửa bài
+
+        async function load() {
+            const res = await fetch(API); const data = await res.json();
+            document.getElementById('quiz-list').innerHTML = data.map(q => `
+                <tr>
+                    <td style="color:var(--cyan); font-weight:800;">#${q.id}</td>
+                    <td>${q.title}</td>
+                    <td>${q.time} phút</td>
+                    <td><span class="badge ${q.difficulty}">${q.difficulty.toUpperCase()}</span></td>
+                    <td style="text-align:center;">
+                        <button class="btn-edit" onclick="startEdit(${q.id}, '${q.title.replace(/'/g, "\\'")}', ${q.time}, '${q.difficulty}')">Sửa</button>
+                        <button class="btn-x" onclick="del(${q.id})">Xóa</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // KHI BẤM NÚT SỬA: ĐẨY DỮ LIỆU LÊN FORM
+        function startEdit(id, title, time, difficulty) {
+            editId = id;
+            document.getElementById('add-title').value = title;
+            document.getElementById('add-time').value = time;
+            document.getElementById('add-diff').value = difficulty;
+            
+            // Đổi chữ nút bấm từ Thêm bài sang Cập nhật
+            document.querySelector('.btn-main').innerText = "CẬP NHẬT";
+        }
+
+        // XỬ LÝ LƯU: TỰ ĐỘNG PHÂN LUỒNG THÊM / SỬA DỰA VÀO BIẾN editId
+        async function handleAdd() {
+            const title = document.getElementById('add-title').value; 
+            const time = document.getElementById('add-time').value; 
+            const difficulty = document.getElementById('add-diff').value;
+            
+            if(!title || !time) return alert("Nhập đủ thông tin m ơi!");
+            
+            if (editId === null) {
+                // CHẾ ĐỘ THÊM MỚI (Mã cũ của m)
+                await fetch(`${API}/add`, { 
+                    method:'POST', 
+                    headers:{'Content-Type':'application/json'}, 
+                    body:JSON.stringify({title, time, difficulty}) 
+                });
+            } else {
+                // CHẾ ĐỘ CẬP NHẬT (Gửi method PUT lên endpoint update của backend)
+                await fetch(`${API}/update/${editId}`, { 
+                    method:'PUT', 
+                    headers:{'Content-Type':'application/json'}, 
+                    body:JSON.stringify({title, time, difficulty}) 
+                });
+                
+                // Trả form về trạng thái Thêm mới ban đầu
+                editId = null;
+                document.querySelector('.btn-main').innerText = "+ THÊM BÀI";
+            }
+            
+            // Xóa sạch dữ liệu các ô nhập sau khi lưu xong
+            document.getElementById('add-title').value = "";
+            document.getElementById('add-time').value = "";
+            document.getElementById('add-diff').value = "easy";
+            
+            load();
+        }
+
+        async function del(id) { 
+            if(confirm("Xóa nhé?")) { 
+                await fetch(`${API}/delete/${id}`, {method:'DELETE'}); 
+                
+                
+                if (editId === id) {
+                    editId = null;
+                    document.querySelector('.btn-main').innerText = "+ THÊM BÀI";
+                    document.getElementById('add-title').value = "";
+                    document.getElementById('add-time').value = "";
+                    document.getElementById('add-diff').value = "easy";
+                }
+                load(); 
+            } 
+        }
+
+        function logout() { localStorage.removeItem("user"); location.href = "../account/login.html"; }
+        window.onload = load;
+    </script>
+</body>
+</html>

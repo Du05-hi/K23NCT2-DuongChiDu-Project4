@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin DHTA ACADEMY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../CSS/admin.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>ADMIN</h2>
+        <nav class="sidebar-nav" id="sidebar-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="courses.html"><i class="fas fa-book"></i> Khóa học</a>
+            <a href="training.html"><i class="fas fa-code"></i> Luyện tập</a>
+            <a href="events.html"><i class="fas fa-calendar-alt"></i> Sự kiện</a>
+            <a href="vouchers.html"><i class="fas fa-ticket-alt"></i> Mã giảm giá</a>
+            <a href="users.html"><i class="fas fa-users"></i> Khách hàng</a>
+            <a href="orders.html"><i class="fas fa-shopping-cart"></i> Đơn hàng</a>
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <h1 class="page-title">QUẢN LÝ [TÊN TRANG]</h1>
+
+        <div class="add-form">
+            <input type="text" placeholder="Nhập thông tin...">
+            <button class="btn-main">+ THÊM MỚI</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>CỘT 1</th><th>CỘT 2</th><th>CỘT 3</th><th>HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Dữ liệu 1</td><td>Dữ liệu 2</td><td>Dữ liệu 3</td>
+                        <td>
+                            <button class="btn-s">Sửa</button>
+                            <button class="btn-x">Xóa</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // TỰ ĐỘNG BẬT ĐÈN ACTIVE THEO URL
+        const path = window.location.pathname;
+        document.querySelectorAll('#sidebar-nav a').forEach(link => {
+            if (path.includes(link.getAttribute('href'))) {
+                link.classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>

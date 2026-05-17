@@ -1,0 +1,102 @@
+:root {
+            --primary: #00d2ff;
+            --secondary: #ff00cc;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: white;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 250px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(15px);
+            padding: 30px 0;
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-bottom: 40px;
+        }
+
+        .menu {
+            list-style: none;
+            padding: 0;
+        }
+
+        .menu li {
+            padding: 15px 30px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .menu li:hover {
+            background: rgba(0,210,255,0.1);
+            color: var(--primary);
+        }
+
+        .logout {
+            margin-top: 40px;
+            padding: 15px 30px;
+            color: #ff4d6d;
+            cursor: pointer;
+        }
+
+        /* CONTENT */
+        .content {
+            flex: 1;
+            padding: 40px;
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+
+        /* STATS */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0,210,255,0.3);
+        }
+
+        .card i {
+            font-size: 30px;
+            color: var(--primary);
+        }
+
+        .card h2 {
+            margin: 10px 0;
+        }
+
+        /* CHART */
+        .chart {
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+        }

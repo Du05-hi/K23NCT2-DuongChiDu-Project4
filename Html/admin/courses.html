@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý khóa học | Admin DHTA ACADEMY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <h2>ADMIN</h2>
+        <nav class="sidebar-nav" id="admin-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="courses.html"><i class="fas fa-book"></i> Khóa học</a>
+            <a href="training.html"><i class="fas fa-code"></i> Luyện tập</a>
+            <a href="events.html"><i class="fas fa-calendar-alt"></i> Sự kiện</a>
+            <a href="vouchers.html"><i class="fas fa-ticket-alt"></i> Mã giảm giá</a>
+            <a href="users.html"><i class="fas fa-users"></i> Khách hàng</a>
+              <a href="/Html/admin/orders.html"><i class="fas fa-shopping-cart"></i> Đơn hàng</a>
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="javascript:void(0)" onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header class="page-header"><h1 class="page-title">QUẢN LÝ KHÓA HỌC</h1><button class="btn-main" onclick="openAdd()">+ THÊM KHÓA HỌC</button></header>
+        <div class="table-container">
+            <table>
+                <thead><tr><th style="width: 50%;">TÊN KHÓA HỌC</th><th style="text-align: right;">GIÁ BÁN</th><th style="text-align: center;">HÀNH ĐỘNG</th></tr></thead>
+                <tbody id="course-list"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="courseModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="color:var(--cyan); margin-bottom:25px;">THÊM KHÓA HỌC</h3>
+            <input type="hidden" id="editId">
+            <div style="margin-bottom:15px;"><label style="display:block; color:var(--cyan); font-size:12px; margin-bottom:5px;">TÊN KHÓA</label><input type="text" id="courseTitle" style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:10px;"></div>
+            <div style="margin-bottom:25px;"><label style="display:block; color:var(--cyan); font-size:12px; margin-bottom:5px;">GIÁ TIỀN</label><input type="number" id="coursePrice" style="width:100%; padding:12px; background:#000; border:1px solid #333; color:#fff; border-radius:10px;"></div>
+            <div style="display:flex; gap:10px;"><button class="btn-main" onclick="save()" style="flex:2">LƯU LẠI</button><button onclick="closeM()" style="flex:1; background:#333; border:none; color:#fff; cursor:pointer; border-radius:10px;">HỦY</button></div>
+        </div>
+    </div>
+
+    <script>
+        const path = window.location.pathname;
+        document.querySelectorAll('#admin-nav a').forEach(a => { if(path.includes(a.getAttribute('href'))) a.classList.add('active'); });
+
+        const API = "http://127.0.0.1:5001/api/admin/courses";
+        async function load() {
+            const res = await fetch(`${API}/all`); const json = await res.json();
+            document.getElementById('course-list').innerHTML = json.data.map(c => `
+                <tr><td style="color:var(--cyan); font-weight:700;">${c.title}</td><td style="text-align:right; font-weight:800; color:#2ecc71;">${c.price.toLocaleString()} đ</td>
+                <td style="text-align:center;"><button class="btn-s" onclick="openEdit(${c.id},'${c.title}',${c.price})">Sửa</button><button class="btn-x" onclick="del(${c.id})">Xóa</button></td></tr>
+            `).join('');
+        }
+        async function save() {
+            const id = document.getElementById('editId').value; const title = document.getElementById('courseTitle').value; const price = document.getElementById('coursePrice').value;
+            await fetch(id ? `${API}/update/${id}` : `${API}/add`, { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({title, price: parseFloat(price), category_id:1, instructor_id:1}) });
+            closeM(); load();
+        }
+        async function del(id) { if(confirm("Xóa nhé?")) { await fetch(`${API}/delete/${id}`, {method:'DELETE'}); load(); } }
+        function openAdd() { document.getElementById('editId').value=""; document.getElementById('courseTitle').value=""; document.getElementById('coursePrice').value=""; document.getElementById('courseModal').style.display='flex'; }
+        function openEdit(id, t, p) { document.getElementById('editId').value=id; document.getElementById('courseTitle').value=t; document.getElementById('coursePrice').value=p; document.getElementById('courseModal').style.display='flex'; }
+        function closeM() { document.getElementById('courseModal').style.display='none'; }
+        function logout() { localStorage.removeItem("user"); location.href = "../account/login.html"; }
+        window.onload = load;
+    </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+/* Đảm bảo Header luôn rộng hết cỡ và có màu nền đen */
+.main-header {
+    background-color: #000 !important;
+    width: 100% !important;
+    padding: 10px 0 !important;
+    border-bottom: 1px solid rgba(0, 210, 255, 0.2) !important;
+    position: sticky;
+    top: 0;
+    z-index: 9999;
+}
+
+/* Container chia làm 3 phần: Logo - Menu - Auth */
+.header-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 0 30px !important;
+}
+
+/* Logo DHTA ACADEMY */
+.logo-dhta {
+    font-size: 22px;
+    font-weight: 900;
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* Menu dàn hàng ngang và có khoảng cách */
+.nav-links-dhta {
+    display: flex !important;
+    list-style: none !important;
+    gap: 20px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.nav-links-dhta li {
+    color: #fff !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+}
+
+/* Phần bên phải (Giỏ hàng & User) */
+.header-right-dhta {
+    display: flex !important;
+    align-items: center !important;
+    gap: 20px !important;
+}
+/* --- FIX GIỎ HÀNG MÀU HỒNG --- */
+.cart-badge {
+    position: absolute !important;
+    top: -10px !important;
+    right: -10px !important;
+    background-color: #ff00cc !important; /* Màu hồng neon của DHTA */
+    color: white !important;
+    font-size: 10px !important;
+    width: 18px !important;
+    height: 18px !important;
+    border-radius: 50% !important; /* Tạo hình tròn */
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    font-weight: bold !important;
+    box-shadow: 0 0 8px rgba(255, 0, 204, 0.6) !important; /* Hiệu ứng phát sáng */
+    z-index: 10 !important;
+}
+
+/* Đảm bảo wrapper chứa nó có vị trí tương đối */
+.cart-wrapper {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    cursor: pointer !important;
+}

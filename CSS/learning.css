@@ -1,0 +1,168 @@
+/* ===== BANNER ===== */
+.banner {
+    margin: 30px auto;
+    width: 80%;
+    padding: 30px;
+    background: linear-gradient(45deg, #00c6ff, #ff00cc);
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* FILTER */
+.filter {
+    width: 80%;
+    margin: auto;
+    display: flex;
+    margin-top: 20px;
+}
+
+.filter input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 6px 0 0 6px;
+    border: none;
+}
+
+.filter button {
+    padding: 10px 15px;
+    border: none;
+    background: #ff00cc;
+    color: white;
+}
+
+/* COURSES GRID */
+.courses {
+    width: 80%;
+    margin: 30px auto;
+    display: flex;
+    gap: 20px;
+}
+
+/* CARD */
+.course-card {
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    border-radius: 10px;
+    width: 250px;
+    transition: 0.3s;
+}
+
+/* HOVER */
+.course-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 0 20px #ff00cc;
+}
+
+.course-card img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+/* PRICE */
+.price {
+    color: red;
+    font-weight: bold;
+}
+
+.free {
+    color: #4cc9f0;
+}
+
+ /* =======================================================
+           1. BIẾN MÀU SẮC & NỀN
+        ======================================================= */
+        :root {
+            --primary: #00d2ff; --secondary: #ff00cc; --accent: #ff4d6d;
+            --glass-border: rgba(255, 255, 255, 0.12);
+        }
+
+        /* =======================================================
+           2. HEADER ĐỒNG BỘ (CAO 90PX, CHỮ 16PX)
+        ======================================================= */
+        .navbar {
+            display: flex !important; 
+            justify-content: space-between !important; 
+            align-items: center !important;
+            padding: 0 5% !important; 
+            height: 90px !important; 
+            background: rgba(0, 0, 0, 0.95) !important; 
+            backdrop-filter: blur(20px);
+            position: sticky; top: 0; z-index: 9999;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            font-weight: 800 !important; 
+            font-size: 30px !important; 
+            letter-spacing: 1px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-transform: uppercase; cursor: pointer;
+            flex: 0 0 auto;
+        }
+
+        .menu { 
+            display: flex !important; 
+            gap: 35px !important; 
+            list-style: none !important; 
+            flex: 1 !important; 
+            justify-content: center !important; 
+        }
+        .menu li { 
+            font-size: 16px !important; 
+            font-weight: 600 !important; 
+            color: #fff !important; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            white-space: nowrap; 
+        }
+        .menu li.active, .menu li:hover { color: var(--primary) !important; }
+
+        .auth { 
+            display: flex !important; 
+            align-items: center !important; 
+            gap: 20px !important; 
+            flex: 0 0 auto;
+            justify-content: flex-end;
+        }
+        
+        .cart-wrapper { position: relative; cursor: pointer; font-size: 24px; color: #fff; transition: 0.3s; }
+        .cart-wrapper:hover { color: var(--primary); }
+        .cart-badge {
+            position: absolute; top: -7px; right: -9px; background: var(--secondary);
+            color: white; font-size: 11px; font-weight: 800; padding: 2px 7px;
+            border-radius: 50%; border: 2px solid #000;
+            display: block; /* Đảm bảo luôn hiện */
+        }
+
+        .user-info { color: var(--primary); font-weight: bold; font-size: 16px; }
+        .separator { color: rgba(255, 255, 255, 0.2); margin: 0 5px; font-size: 18px; }
+
+        .btn-logout-nav { 
+            background: transparent !important; 
+            color: var(--accent) !important; 
+            border: 1px solid var(--accent) !important;
+            padding: 8px 22px !important; 
+            border-radius: 12px !important; 
+            font-size: 13px !important; 
+            font-weight: 700 !important; 
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-logout-nav:hover { background: var(--accent) !important; color: white !important; }
+
+        /* =======================================================
+           3. CSS KHÓA HỌC
+        ======================================================= */
+        .course-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            transition: 0.3s;
+            text-align: left;
+        }
+        .course-card:hover { transform: translateY(-8px); border-color: #ff00cc; }
+        .course-card h4 { color: #ffffff; font-size: 1.1rem; margin: 15px 0 8px 0; line-height: 1.4; }
+        .course-card .price { display: block; margin-top: 15px; color: #2ecc71; font-weight: 800; font-size: 1.2rem; }

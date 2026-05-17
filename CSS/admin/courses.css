@@ -1,0 +1,52 @@
+/* CSS/admin/courses.css - BẢN FIX CHI TIẾT */
+
+/* MODAL OVERLAY */
+.modal-overlay {
+    display: none; 
+    position: fixed; 
+    top: 0; left: 0; 
+    width: 100%; height: 100%; 
+    background: rgba(0, 0, 0, 0.85); 
+    z-index: 2000; 
+    justify-content: center; 
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+/* MODAL CONTENT */
+.modal-content {
+    background: #110221; 
+    padding: 35px; 
+    border-radius: 25px; 
+    width: 450px; 
+    border: 1px solid var(--cyan); 
+    box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
+    animation: modalFade 0.3s ease;
+}
+
+@keyframes modalFade {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 10px; color: var(--cyan); font-weight: 700; font-size: 13px; }
+.form-group input {
+    width: 100%; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid #333;
+    color: #fff; border-radius: 12px; outline: none; transition: 0.3s;
+}
+.form-group input:focus { border-color: var(--cyan); }
+
+/* ACTIONS */
+.modal-actions { display: flex; gap: 10px; margin-top: 30px; }
+.btn-modal-save { flex: 2; background: var(--pink); color: #fff; border: none; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+.btn-modal-cancel { flex: 1; background: #333; color: #fff; border: none; border-radius: 12px; cursor: pointer; }
+
+/* DETAIL CARD */
+.detail-card { border-color: var(--pink) !important; }
+.detail-card h3 { color: var(--pink) !important; margin-bottom: 25px; font-weight: 900; }
+.detail-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+/* NÚT CHI TIẾT TRONG BẢNG */
+.btn-d { background: rgba(255,255,255,0.1); border: 1px solid #666; color: #fff; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+.btn-d:hover { background: #fff; color: #000; }

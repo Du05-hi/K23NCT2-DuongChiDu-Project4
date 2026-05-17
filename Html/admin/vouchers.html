@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý Voucher | Admin DHTA ACADEMY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css"> </head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>ADMIN</h2></div>
+            <nav class="sidebar-nav">
+                <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="courses.html"><i class="fas fa-book"></i> Khóa học</a>
+                <a href="training.html"><i class="fas fa-code"></i> Luyện tập</a>
+                <a href="events.html"><i class="fas fa-calendar-alt"></i> Sự kiện</a>
+                <a href="vouchers.html" class="active"><i class="fas fa-ticket-alt"></i> Mã giảm giá</a>
+                <a href="users.html"><i class="fas fa-users"></i> Khách hàng</a>
+                <a href="orders.html"><i class="fas fa-shopping-cart"></i> Đơn hàng</a>
+                <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+                <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+                <a href="javascript:void(0)" onclick="logout()" style="color: #ff3c6d !important;"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 style="color: #00f2ff; text-shadow: 0 0 20px #00f2ff; font-weight: 900; text-transform: uppercase;">QUẢN LÝ VOUCHER</h1>
+            </header>
+
+            <div class="add-form" style="display: flex; gap: 10px; background: rgba(255,255,255,0.03); padding: 20px; border-radius: 15px; margin-bottom: 30px; border: 1px solid rgba(255,255,255,0.1);">
+                <input type="text" id="v-code" placeholder="Mã Code" style="flex:1; background:#000; color:#fff; border:1px solid #333; padding:10px; border-radius:8px;">
+                <input type="number" id="v-discount" placeholder="Giảm (%)" style="width:100px; background:#000; color:#fff; border:1px solid #333; padding:10px; border-radius:8px;">
+                <input type="datetime-local" id="v-expiry" style="background:#000; color:#fff; border:1px solid #333; padding:10px; border-radius:8px;">
+                <input type="number" id="v-limit" placeholder="Số lượng" style="width:100px; background:#000; color:#fff; border:1px solid #333; padding:10px; border-radius:8px;">
+                <button onclick="addVoucher()" style="background:#ff00ea; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:800; cursor:pointer;">+ TẠO MÃ</button>
+            </div>
+
+            <div class="table-container">
+                <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="color: #ff00ea; text-align: left; border-bottom: 2px solid rgba(255,0,234,0.2);">
+                            <th style="padding: 15px;">MÃ CODE</th>
+                            <th>GIẢM (%)</th>
+                            <th>HẾT HẠN</th>
+                            <th>CÒN LẠI</th>
+                            <th>HÀNH ĐỘNG</th>
+                        </tr>
+                    </thead>
+                    <tbody id="v-list">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API = "http://127.0.0.1:5001/api/admin/vouchers";
+
+        async function load() {
+            const tbody = document.getElementById('v-list');
+            try {
+                const res = await fetch(API);
+                const data = await res.json();
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#00f2ff;">M chưa có mã nào trong SQL Server. Hãy tạo mới ở trên!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(v => `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <td style="padding:15px; color:#00f2ff; font-weight:800;">${v.code}</td>
+                        <td>${v.discount}%</td>
+                        <td>${v.expiry}</td>
+                        <td><span style="color:#ff00ea; font-weight:800;">${v.limit}</span> mã</td>
+                        <td>
+                            <button onclick="editVoucher(${v.id}, '${v.code}', ${v.limit})" style="background:none; border:1px solid #00f2ff; color:#00f2ff; padding:5px 10px; border-radius:5px; cursor:pointer;">Sửa</button>
+                            <button onclick="del(${v.id})" style="background:none; border:1px solid #ff3c6d; color:#ff3c6d; padding:5px 10px; border-radius:5px; cursor:pointer;">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red; padding:30px;">Lỗi kết nối API app.py cổng 5001!</td></tr>';
+            }
+        }
+
+        async function addVoucher() {
+            const code = document.getElementById('v-code').value;
+            const discount = document.getElementById('v-discount').value;
+            const expiry = document.getElementById('v-expiry').value;
+            const limit = document.getElementById('v-limit').value;
+            if(!code || !discount || !expiry) return alert("Nhập đủ thông tin m ơi!");
+
+            await fetch(API + "/add", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ code, discount, expiry, limit })
+            });
+            location.reload();
+        }
+
+        async function editVoucher(id, code, oldLimit) {
+            const newLimit = prompt(`Nhập số lượng mới cho mã ${code}:`, oldLimit);
+            if (newLimit !== null) {
+                await fetch(API + "/update/" + id, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ limit: parseInt(newLimit) })
+                });
+                load();
+            }
+        }
+
+        async function del(id) {
+            if(confirm("Xóa mã này nhé?")) {
+                await fetch(API + "/delete/" + id, { method: 'DELETE' });
+                load();
+            }
+        }
+
+        window.onload = load;
+    </script>
+</body>
+</html>

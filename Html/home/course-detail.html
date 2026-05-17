@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Chi Tiết Khóa Học | Cyber-LMS Premium</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../CSS/course-detail.css">
+</head>
+    <style>
+        /* =======================================================
+           1. CSS HỆ THỐNG & HEADER (CÓ GIỎ HÀNG ICON)
+        ======================================================= */
+        :root {
+            --primary: #00d2ff; --secondary: #ff00cc; --accent: #ff4d6d;
+            --glass: rgba(255, 255, 255, 0.08); --glass-border: rgba(255, 255, 255, 0.12);
+            --bg-gradient: linear-gradient(135deg, #2c1a4d, #c33764); 
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: var(--bg-gradient); background-attachment: fixed; color: white; min-height: 100vh; overflow-x: hidden; }
+
+        .navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 8%; height: 80px; background: rgba(0, 0, 0, 0.85); 
+            backdrop-filter: blur(20px); position: sticky; top: 0; z-index: 9999;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .logo { font-weight: 800; font-size: 26px; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-transform: uppercase; cursor: pointer; }
+        .menu { display: flex; gap: 30px; list-style: none; }
+        .menu li { font-size: 15px; font-weight: 600; color: #fff; cursor: pointer; transition: 0.3s; }
+        .menu li:hover { color: var(--primary); }
+
+        /* AUTH PHẦN CÓ GIỎ HÀNG ICON */
+        .auth { display: flex; align-items: center; gap: 20px; }
+        
+        .cart-icon-wrapper { position: relative; cursor: pointer; font-size: 20px; color: #fff; transition: 0.3s; }
+        .cart-icon-wrapper:hover { color: var(--primary); }
+        .cart-badge {
+            position: absolute; top: -8px; right: -10px; background: var(--secondary);
+            color: white; font-size: 10px; font-weight: 800; padding: 2px 6px;
+            border-radius: 50%; border: 2px solid #000; display: none;
+        }
+
+        .user-name { color: var(--primary); font-weight: bold; font-size: 15px; }
+        .nav-link-text { color: #fff; text-decoration: none; font-size: 14px; cursor: pointer; transition: 0.3s; }
+        .nav-link-text:hover { color: var(--primary); }
+        .btn-logout { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 5px 15px; border-radius: 10px; font-size: 13px; font-weight: bold; cursor: pointer; }
+
+        /* =======================================================
+           2. BỐ CỤC NỘI DUNG CHI TIẾT
+        ======================================================= */
+        .container { display: grid; grid-template-columns: 1fr 380px; gap: 40px; padding: 40px 8% 100px 8%; }
+        .btn-back { color: rgba(255, 255, 255, 0.6); text-decoration: none; font-size: 14px; display: flex; align-items: center; gap: 10px; margin-bottom: 25px; transition: 0.3s; }
+        .btn-back:hover { color: var(--primary); transform: translateX(-5px); }
+
+        .section-panel { background: var(--glass); border-radius: 30px; border: 1px solid var(--glass-border); padding: 35px; backdrop-filter: blur(15px); margin-bottom: 30px; }
+        .section-panel h3 { font-size: 22px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; }
+        .section-panel h3 i { color: var(--primary); }
+
+        .learning-list { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; list-style: none; }
+        .learning-list li { display: flex; gap: 12px; font-size: 15px; color: #eee; }
+        .learning-list li i { color: #2ecc71; }
+
+        .curriculum-item { background: rgba(0,0,0,0.2); padding: 15px 20px; border-radius: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        
+        .instructor-card { display: flex; gap: 20px; align-items: center; }
+        .instructor-avatar { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--primary); padding: 3px; }
+        .instructor-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+
+        /* CỘT PHẢI */
+        .sticky-sidebar { position: sticky; top: 120px; }
+        .purchase-card { background: rgba(0, 0, 0, 0.4); border-radius: 35px; border: 2px solid var(--primary); padding: 40px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .price-tag { font-size: 40px; font-weight: 900; margin-bottom: 30px; color: #fff; }
+        .btn-buy { width: 100%; padding: 18px; background: var(--primary); color: #000; border: none; border-radius: 15px; font-weight: 800; text-transform: uppercase; cursor: pointer; margin-bottom: 15px; transition: 0.3s; }
+        .btn-buy:hover { transform: scale(1.03); box-shadow: 0 0 30px var(--primary); }
+        .btn-cart { width: 100%; padding: 15px; background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.5); border-radius: 15px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
+    </style>
+<body>
+
+<nav class="navbar">
+    <div class="logo" onclick="location.href='index.html'">CODELEARN</div>
+    <ul class="menu">
+        <li onclick="location.href='index.html'">Trang chủ</li>
+        <li class="active" onclick="location.href='learning.html'">Học tập</li>
+        <li onclick="location.href='training.html'">Luyện tập</li> 
+        <li onclick="location.href='event.html'">Sự kiện</li>
+        <li onclick="location.href='about.html'">Giới thiệu</li>
+        <li onclick="location.href='coupon.html'">Mã giám giá</li>
+    </ul>
+    <div class="auth" id="nav-auth"></div>
+</nav>
+
+<div class="container">
+    <main>
+        <a href="learning.html" class="btn-back"><i class="fas fa-arrow-left"></i> QUAY LẠI DANH SÁCH</a>
+        <h1 id="courseTitle" style="font-size: 42px; font-weight: 900; margin-bottom: 20px;">Đang tải khóa học...</h1>
+        
+        <div class="course-meta" style="margin-bottom: 40px;">
+            <span><i class="fas fa-play-circle"></i> 15 bài học</span>
+            <span><i class="fas fa-clock"></i> 30 giờ học</span>
+            <span><i class="fas fa-star" style="color: #f1c40f;"></i> 4.9 Đánh giá</span>
+        </div>
+
+        <div class="section-panel">
+            <h3><i class="fas fa-bullseye"></i> Bạn sẽ học được gì?</h3>
+            <ul class="learning-list">
+                <li><i class="fas fa-check-circle"></i> Tư duy lập trình Backend hiện đại.</li>
+                <li><i class="fas fa-check-circle"></i> Thiết kế Database chuẩn 3NF.</li>
+                <li><i class="fas fa-check-circle"></i> Triển khai API bảo mật cao.</li>
+                <li><i class="fas fa-check-circle"></i> Kỹ năng fix bug thực chiến.</li>
+            </ul>
+        </div>
+
+        <div class="section-panel">
+            <h3><i class="fas fa-list-ol"></i> Lộ trình học chi tiết</h3>
+            <div class="curriculum-item"><span>Chương 1: Tổng quan và Môi trường</span><span>02:30:00</span></div>
+            <div class="curriculum-item"><span>Chương 2: Làm chủ SQL Server</span><span>05:45:00</span></div>
+            <div class="curriculum-item"><span>Chương 3: Xây dựng RESTful API</span><span>08:15:00</span></div>
+            <div class="curriculum-item"><span>Chương 4: Bảo mật và Deploy</span><span>04:20:00</span></div>
+        </div>
+
+        <div class="section-panel">
+            <h3><i class="fas fa-user-tie"></i> Giảng viên hướng dẫn</h3>
+            <div class="instructor-card">
+                <div class="instructor-avatar">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Chung" alt="Giảng viên">
+                </div>
+                <div class="instructor-info">
+                    <h4>ThS. Trịnh Văn Chung</h4>
+                    <p>Chuyên gia phát triển phần mềm với hơn 15 năm kinh nghiệm thực chiến.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <aside class="sticky-sidebar">
+        <div class="purchase-card">
+            <div class="price-tag" id="coursePrice">0 đ</div>
+            <button class="btn-buy" onclick="handleBuyNow()">MUA NGAY</button>
+            <button class="btn-cart" onclick="addToCart()">THÊM VÀO GIỎ HÀNG</button>
+            <div style="margin-top: 20px; font-size: 13px; color: #999; text-align: left;">
+                <p><i class="fas fa-infinity"></i> Quyền truy cập trọn đời</p>
+                <p><i class="fas fa-certificate"></i> Cấp chứng chỉ hoàn thành</p>
+            </div>
+        </div>
+    </aside>
+</div>
+
+<script>
+    const API_URL = 'http://127.0.0.1:5001/api';
+
+    // 1. Đồng bộ Header Master
+    function syncHeader() {
+        const user = JSON.parse(localStorage.getItem('user')) || { username: 'hocsinh' };
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const authDiv = document.getElementById('nav-auth');
+        
+        authDiv.innerHTML = `
+            <div class="cart-icon-wrapper" onclick="location.href='cart.html'">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cart-count" style="${cart.length > 0 ? 'display:block' : 'display:none'}">${cart.length}</span>
+            </div>
+            <span class="user-name">Chào, ${user.username}</span>
+            <span style="color:rgba(255,255,255,0.2)">|</span>
+            <span class="nav-link-text" onclick="location.href='order-history.html'">Lịch sử</span>
+            <span style="color:rgba(255,255,255,0.2)">|</span>
+            <button class="btn-logout" onclick="localStorage.removeItem('user'); location.reload();">Đăng xuất</button>
+        `;
+    }
+
+    // 2. Fix lỗi Mua ngay (Lưu giỏ xong mới nhảy trang)
+    function handleBuyNow() {
+        const title = document.getElementById('courseTitle').innerText;
+        const price = document.getElementById('coursePrice').innerText.replace(/[^0-9]/g, '');
+        if(title === "Đang tải khóa học...") return;
+
+        localStorage.setItem('cart', JSON.stringify([{ title, price }]));
+        setTimeout(() => { window.location.href = 'checkout.html'; }, 100);
+    }
+
+    // 3. Thêm vào giỏ
+    function addToCart() {
+        const title = document.getElementById('courseTitle').innerText;
+        const price = document.getElementById('coursePrice').innerText.replace(/[^0-9]/g, '');
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.push({ title, price });
+        localStorage.setItem('cart', JSON.stringify(cart));
+        syncHeader();
+        alert("✅ Đã thêm vào giỏ hàng thành công!");
+    }
+
+    async function init() {
+        const id = new URLSearchParams(window.location.search).get('id');
+        if (id) {
+            try {
+                const res = await fetch(`${API_URL}/courses`);
+                const data = await res.json();
+                const course = data.data.find(c => c.id == id);
+                if (course) {
+                    document.getElementById('courseTitle').innerText = course.title;
+                    document.getElementById('coursePrice').innerText = Number(course.price).toLocaleString('vi-VN') + " đ";
+                }
+            } catch (e) { console.log("Lỗi server API!"); }
+        }
+        syncHeader();
+    }
+    window.onload = init;
+</script>
+</body>
+</html>

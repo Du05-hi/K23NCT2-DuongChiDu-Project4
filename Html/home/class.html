@@ -1,0 +1,28 @@
+<link rel="stylesheet" href="../../CSS/home/class.css">
+<div class="class-container">
+
+    <!-- SIDEBAR BÀI HỌC -->
+    <div class="lesson-list" id="lessonList"></div>
+
+    <!-- NỘI DUNG -->
+    <div class="lesson-content">
+
+        <!-- VIDEO -->
+        <video id="videoPlayer" controls width="100%"></video>
+
+        <!-- BÀI TẬP -->
+        <div id="quizBox" style="display:none;">
+            <h3>Bài tập</h3>
+            <p id="question"></p>
+            <input id="answerInput" placeholder="Nhập đáp án...">
+            <button onclick="submitAnswer()">Nộp bài</button>
+        </div>
+
+        <!-- ĐIỂM DANH -->
+        <div class="attendance">
+            <button onclick="checkAttendance()">📍 Điểm danh</button>
+        </div>
+
+    </div>
+
+</div>

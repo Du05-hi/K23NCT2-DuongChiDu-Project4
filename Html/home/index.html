@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống LMS Cyber | DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../../CSS/main.css">
+    <link rel="stylesheet" href="../../CSS/home.css">
+    <link rel="stylesheet" href="../../CSS/index.css">
+    
+    <link rel="stylesheet" href="../../CSS/header.css">
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+
+<div class="hero">
+    <div class="hero-left">
+        <h1>Nền tảng học lập trình <br><span style="color: var(--primary);">trực tuyến hiện đại</span></h1>
+        <p style="color: #bdc3c7; font-size: 18px; margin-top: 20px;">Học cùng chuyên gia DHTA, thực chiến dự án thực tế từ các tập đoàn công nghệ lớn.</p>
+        
+        <div class="features">
+            <div><i class="fas fa-check-circle"></i> 50+ Khóa học chuyên sâu</div>
+            <div><i class="fas fa-check-circle"></i> Giảng viên hỗ trợ 24/7</div>
+            <div><i class="fas fa-check-circle"></i> Chứng chỉ hoàn thành uy tín</div>
+            <div><i class="fas fa-check-circle"></i> Lộ trình học bài bản</div>
+        </div>
+    </div>
+
+    <div class="hero-right">
+        <div class="card-glass" id="home-login-card">
+            <h3 style="text-align: center; margin-bottom: 30px;">Tham gia học tập</h3>
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="home_username" placeholder="Tên tài khoản">
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="home_password" placeholder="Mật khẩu">
+            </div>
+            <button class="btn-main" onclick="handleHomeLogin()">ĐĂNG NHẬP NGAY</button>
+            <p style="text-align:center; margin-top:20px; font-size:13px; color: #999;">
+                Mới tham gia? <a href="../account/register.html" style="color:var(--primary); text-decoration: none;">Đăng ký ngay</a>
+            </p>
+        </div>
+        
+        <div class="card-glass hidden" id="home-welcome-card" style="text-align: center;">
+            <div style="font-size: 60px; color: var(--primary); margin-bottom: 20px;">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <h3>Chào mừng trở lại, <br><span id="display-user-name" style="color: var(--secondary);">Thành viên</span>!</h3>
+            <p style="margin: 20px 0; color: #bdc3c7;">Hôm nay bạn muốn học thêm điều gì mới?</p>
+            <div id="welcome-action-area"></div>
+            <p onclick="handleLogout()" style="margin-top:25px; color: var(--accent); cursor:pointer; font-weight:700; font-size: 14px;">Đăng xuất</p>
+        </div>
+    </div>
+</div>
+
+<div class="stats-bar">
+    <div class="stat-item"><h2>15K+</h2><p>Học viên</p></div>
+    <div class="stat-item"><h2>50+</h2><p>Khóa học</p></div>
+    <div class="stat-item"><h2>120+</h2><p>Bài thi</p></div>
+    <div class="stat-item"><h2>24/7</h2><p>Hỗ trợ</p></div>
+</div>
+
+<script src="../../Js/auth.js"></script>
+<script>
+    const API_URL = 'http://127.0.0.1:5001/api'; 
+
+    // 1. HÀM LOAD HEADER TỪ FILE DÙNG CHUNG
+    async function loadSharedHeader() {
+        try {
+            const response = await fetch('../layout/header.html');
+            if (!response.ok) throw new Error('Không tìm thấy file header.html');
+            const data = await response.text();
+            
+            document.getElementById('header-placeholder').innerHTML = data;
+            
+            // Highlight menu "Trang chủ"
+            const homeMenu = document.querySelector('.nav-links-dhta li:first-child');
+            if(homeMenu) homeMenu.style.color = "#ff00cc";
+
+            // Sau khi nạp Header xong mới chạy hàm checkAuth
+            checkAuth(); 
+        } catch (err) {
+            console.error("Lỗi load header:", err);
+        }
+    }
+
+    // 2. HÀM CẬP NHẬT SỐ LƯỢNG GIỎ HÀNG (Đảm bảo hiện số 0 màu hồng)
+    function updateCartBadge() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const badge = document.getElementById('cart-count');
+        if (badge) {
+            badge.innerText = cart.length;
+            badge.style.display = 'flex'; // Ép kiểu hiện flex để vòng tròn căn giữa
+        }
+    }
+
+    // 3. LOGIC KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP
+    function checkAuth() {
+        const userStr = localStorage.getItem('user');
+        const navAuth = document.getElementById('nav-auth');
+        
+        if (userStr && navAuth) {
+            const user = JSON.parse(userStr);
+            // Gắn cấu trúc giỏ hàng và thông tin admin vào Header
+            navAuth.innerHTML = `
+                <div class="cart-wrapper" onclick="location.href='cart.html'">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-badge" id="cart-count">0</span>
+                </div>
+                <span class="user-info" style="color:white; margin:0 10px;">Chào, ${user.username}</span>
+                <span class="separator" style="color:#333;">|</span>
+                <button class="btn-logout-nav" onclick="handleLogout()" style="border:1px solid #ff4d6d; color:#ff4d6d; background:none; padding:5px 12px; border-radius:20px; cursor:pointer; font-weight:700;">Đăng xuất</button>
+            `;
+            
+            // Gọi hàm cập nhật số lượng để hiện số 0 ngay lập tức
+            updateCartBadge(); 
+            
+            // Xử lý ẩn/hiện Card ở giữa trang
+            document.getElementById('home-login-card')?.classList.add('hidden');
+            const welcomeCard = document.getElementById('home-welcome-card');
+            if(welcomeCard) {
+                welcomeCard.classList.remove('hidden');
+                document.getElementById('display-user-name').innerText = user.username;
+                const actionArea = document.getElementById('welcome-action-area');
+                const role = user.role.toLowerCase().trim();
+                if(role === 'admin') {
+                    actionArea.innerHTML = `<button class="btn-main" onclick="location.href='../admin/dashboard.html'">VÀO QUẢN TRỊ VIÊN</button>`;
+                } else {
+                    actionArea.innerHTML = `<button class="btn-main" onclick="location.href='learning.html'">VÀO HỌC NGAY</button>`;
+                }
+            }
+        }
+    }
+
+    // 4. XỬ LÝ ĐĂNG NHẬP
+    async function handleHomeLogin() {
+        const u = document.getElementById('home_username').value;
+        const p = document.getElementById('home_password').value;
+        if (!u || !p) return alert("Vui lòng nhập đủ thông tin!");
+        try {
+            const res = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: u, password: p })
+            });
+            const data = await res.json();
+            if (data.status === "success") {
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.reload(); 
+            } else { alert(data.message); }
+        } catch (err) { alert("Lỗi kết nối Server cổng 5001!"); }
+    }
+
+    // 5. XỬ LÝ ĐĂNG XUẤT
+    function handleLogout() {
+        localStorage.removeItem('user');
+        window.location.reload();
+    }
+
+    // TỰ ĐỘNG CHẠY KHI TẢI TRANG
+    window.onload = loadSharedHeader;
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+/* checkout.css - DHTA ACADEMY BRIGHT LIGHT THEME */
+:root {
+    --primary: #00d2ff;
+    --secondary: #ff00ea;
+    --bg-light: #f7f9fc;
+    --card-white: #ffffff;
+    --text-dark: #2d3436;
+    --text-muted: #636e72;
+    --border-color: #dfe6e9;
+}
+
+body.checkout-page-bright {
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar-bright {
+    background: #fff;
+    padding: 15px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 20px;
+    align-items: center;
+}
+
+.logo-bright { font-size: 24px; font-weight: 800; color: var(--primary); cursor: pointer; }
+.pink-text { color: var(--secondary); }
+.back-btn { text-decoration: none; color: var(--text-muted); font-size: 14px; font-weight: 600; }
+
+.container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+
+/* === THANH TIẾN TRÌNH (STEPS) === */
+.checkout-steps-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+.step-item { text-align: center; width: 100px; }
+.step-icon {
+    width: 35px; height: 35px; border-radius: 50%;
+    background: #ddd; color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 10px; font-weight: bold;
+}
+.step-item.active .step-icon { background: var(--primary); box-shadow: 0 0 15px rgba(0,210,255,0.4); }
+.step-item.completed .step-icon { background: #2ecc71; }
+.step-label { font-size: 12px; font-weight: 800; color: #999; }
+.step-item.active .step-label { color: var(--text-dark); }
+
+.step-line { width: 80px; height: 2px; background: #ddd; margin: -25px 15px 0; }
+.step-line.active { background: #2ecc71; }
+
+/* Layout & Cards */
+.checkout-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 30px; }
+.white-card {
+    background: var(--card-white);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.04);
+    border: 1px solid var(--border-color);
+    margin-bottom: 25px;
+}
+
+.card-title { font-size: 18px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px; color: var(--text-dark); }
+.card-title i { color: var(--primary); }
+
+/* Input */
+.input-field label { display: block; margin-bottom: 10px; font-size: 13px; color: var(--text-muted); }
+.input-field input {
+    width: 100%; padding: 12px; border: 1px solid var(--border-color);
+    border-radius: 10px; font-size: 16px; font-weight: bold; color: var(--primary);
+    background: #fdfdfd;
+}
+
+/* Payment Methods */
+.payment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+.pay-method {
+    padding: 20px; border: 2px solid var(--border-color); border-radius: 15px;
+    text-align: center; cursor: pointer; transition: 0.3s;
+}
+.pay-method.active { border-color: var(--primary); background: rgba(0,210,255,0.03); }
+.pay-method i { font-size: 24px; color: #aaa; margin-bottom: 10px; display: block; }
+.pay-method.active i { color: var(--primary); }
+.pay-method span { font-weight: 700; font-size: 14px; }
+
+/* QR Section */
+.qr-section { background: #f9fbfc; padding: 30px; border-radius: 20px; text-align: center; }
+.qr-container { background: #fff; padding: 10px; display: inline-block; border-radius: 15px; border: 1px solid var(--border-color); margin: 15px 0; }
+.qr-container img { width: 180px; height: 180px; display: block; }
+.order-id-label { font-weight: bold; }
+.order-id-label span { color: var(--secondary); font-size: 18px; }
+
+/* Sidebar Summary */
+.items-list { margin-bottom: 25px; }
+.item-line { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f1f4f8; font-size: 14px; color: #555; }
+
+/* Coupon chuân ảnh m gửi nhưng sáng màu */
+.coupon-bright-box {
+    margin: 20px 0; padding: 20px;
+    border: 1px dashed var(--primary); border-radius: 15px;
+}
+.coupon-title { font-size: 11px; font-weight: 800; color: var(--primary); margin-bottom: 10px; }
+.coupon-form { display: flex; gap: 8px; }
+.coupon-form input { flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; }
+.coupon-form button { background: var(--text-dark); color: #fff; border: none; padding: 0 15px; border-radius: 8px; font-weight: 800; cursor: pointer; }
+
+.total-summary { border-top: 2px solid #f1f4f8; margin-top: 20px; padding-top: 20px; }
+.total-price { font-size: 26px; font-weight: 900; color: var(--primary); }
+
+.btn-checkout-final {
+    width: 100%; padding: 18px; margin-top: 25px;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border: none; border-radius: 12px; color: #fff; font-weight: 800;
+    text-transform: uppercase; cursor: pointer; transition: 0.3s;
+}
+.btn-checkout-final:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255,0,234,0.25); }

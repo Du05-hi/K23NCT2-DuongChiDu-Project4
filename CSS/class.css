@@ -1,0 +1,40 @@
+.class-container{
+    display:flex;
+    height:90vh;
+    color:white;
+}
+
+.lesson-list{
+    width:250px;
+    background:#1e1e2f;
+    padding:15px;
+    overflow-y:auto;
+}
+
+.lesson-item{
+    padding:10px;
+    margin-bottom:10px;
+    background:#2c2c3a;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.lesson-item:hover{
+    background:#3a3a4f;
+}
+
+.lesson-content{
+    flex:1;
+    padding:20px;
+}
+
+#quizBox{
+    margin-top:20px;
+    background:#2c2c3a;
+    padding:15px;
+    border-radius:10px;
+}
+
+.attendance{
+    margin-top:20px;
+}

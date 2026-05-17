@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sự kiện | Admin DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="/CSS/admin.css"> 
+    <link rel="stylesheet" href="/CSS/admin/events.css">
+</head>
+<body>
+    <div class="admin-layout">
+        
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>ADMIN</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/Html/admin/dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+                <a href="/Html/admin/courses.html"><i class="fas fa-book"></i> Khóa học</a>
+                <a href="/Html/admin/training.html"><i class="fas fa-code"></i> Luyện tập</a>
+                <a href="/Html/admin/events.html" class="active"><i class="fas fa-calendar-alt"></i> Sự kiện</a>
+                <a href="/Html/admin/vouchers.html"><i class="fas fa-ticket-alt"></i> Mã giảm giá</a>
+                <a href="/Html/admin/users.html"><i class="fas fa-users"></i> Khách hàng</a>
+                <a href="/Html/admin/orders.html"><i class="fas fa-shopping-cart"></i> Đơn hàng</a>
+                <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+                <a href="/Html/home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+                <a href="javascript:void(0)" onclick="handleLogout()" style="color: #ff3c6d !important;">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="content-header">
+                <div class="title-section">
+                    <span class="icon-box">📅</span>
+                    <h1>QUẢN LÝ SỰ KIỆN</h1>
+                </div>
+                
+                <div class="add-event-form">
+                    <input type="text" id="ev-title" placeholder="Tên sự kiện mới...">
+                    <input type="date" id="ev-date">
+                    <select id="ev-status">
+                        <option value="GHI DANH">GHI DANH</option>
+                        <option value="LIVE NOW">LIVE NOW</option>
+                        <option value="ĐÃ KẾT THÚC">ĐÃ KẾT THÚC</option>
+                    </select>
+                    <button class="btn-add-neon" onclick="addEvent()">+ THÊM</button>
+                </div>
+            </header>
+
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>TÊN SỰ KIỆN</th>
+                            <th>NGÀY TỔ CHỨC</th>
+                            <th>TRẠNG THÁI</th>
+                            <th>HÀNH ĐỘNG</th>
+                        </tr>
+                    </thead>
+                    <tbody id="event-list-body">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Đường dẫn API - Dùng tương đối để Flask tự điều hướng
+        const API_URL = "/api/admin/events";
+
+        // 1. Hàm nạp danh sách từ SQL Server
+        async function loadEvents() {
+            const tbody = document.getElementById('event-list-body');
+            try {
+                const res = await fetch(API_URL);
+                const data = await res.json();
+                
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:40px; color:#00f2ff;">M chưa có dữ liệu trong SQL Server. Hãy dùng nút + THÊM để tạo mới!</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(ev => `
+                    <tr>
+                        <td style="color: #00f2ff; font-weight: 800;">#${ev.id}</td>
+                        <td style="color: #fff; font-weight: 600;">${ev.title}</td>
+                        <td style="color: #cbd5e0;">${ev.date}</td>
+                        <td><span class="badge ${getStatusClass(ev.status)}">${ev.status}</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-s" onclick="editEvent(${ev.id}, '${ev.title}')">Sửa</button>
+                                <button class="btn-x" onclick="deleteEvent(${ev.id})">Xóa</button>
+                                <button class="btn-c" onclick="showDetail(${ev.id})">Chi tiết</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Lỗi kết nối API app.py. M kiểm tra Terminal xem Server chạy chưa!</td></tr>';
+            }
+        }
+
+        // 2. Hàm thêm sự kiện
+        async function addEvent() {
+            const title = document.getElementById('ev-title').value;
+            const date = document.getElementById('ev-date').value;
+            const status = document.getElementById('ev-status').value;
+
+            if(!title || !date) return alert("Tuấn ơi, m nhập thiếu thông tin rồi!");
+
+            const res = await fetch(`${API_URL}/add`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ title, date, status })
+            });
+
+            if(res.ok) {
+                location.reload(); // Tải lại trang để hiện dòng mới
+            }
+        }
+
+        // 3. Hàm xóa sự kiện
+        async function deleteEvent(id) {
+            if(confirm(`M chắc chắn muốn xóa sự kiện #${id} khỏi Database của nhóm 10?`)) {
+                const res = await fetch(`${API_URL}/delete/${id}`, { method: 'DELETE' });
+                if(res.ok) loadEvents();
+            }
+        }
+
+        // 4. Hàm sửa nhanh tên
+        async function editEvent(id, oldTitle) {
+            const newTitle = prompt("Nhập tên sự kiện mới:", oldTitle);
+            if (newTitle && newTitle !== oldTitle) {
+                await fetch(`${API_URL}/update/${id}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ title: newTitle })
+                });
+                loadEvents();
+            }
+        }
+
+        // 5. Hàm chi tiết (Modal hoặc Alert)
+        function showDetail(id) {
+            alert(`Đang mở chi tiết sự kiện ID: ${id}\nNhóm 10: Du, Hiếu, Tuấn, Anh.`);
+        }
+
+        // Định màu cho Badge trạng thái
+        function getStatusClass(status) {
+            if(status === 'LIVE NOW') return 'success';
+            if(status === 'GHI DANH') return 'primary';
+            return 'gray';
+        }
+
+        // Xử lý đăng xuất
+        function handleLogout() {
+            if(confirm("M muốn đăng xuất à?")) {
+                localStorage.removeItem('user');
+                window.location.href = "/Html/account/login.html";
+            }
+        }
+
+        // Tự động load khi mở trang
+        window.onload = loadEvents;
+    </script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Lịch Sử Đơn Hàng | DHTA ACADEMY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../CSS/order-history.css">
+    <link rel="stylesheet" href="../../CSS/header.css">
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+
+<div class="container" style="padding-top: 100px;">
+    <div class="header-section">
+        <h1>Lịch sử đơn hàng</h1>
+        <button class="btn-view" onclick="location.href='learning.html'">Tiếp tục học tập</button>
+    </div>
+
+    <div class="history-table-container">
+        <table id="historyTable" style="display: none; width: 100%;">
+            <thead>
+                <tr>
+                    <th>Mã Đơn</th>
+                    <th>Khóa Học</th>
+                    <th>Tổng Tiền</th>
+                    <th>Trạng Thái</th>
+                </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+        </table>
+        
+        <div id="emptyMsg" class="empty-state">
+            <i class="fas fa-box-open" style="font-size: 50px; color: #444; display: block; margin-bottom: 15px;"></i>
+            <p>Bạn chưa có đơn hàng nào!</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadHistory() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if(!user) return;
+
+        try {
+            const res = await fetch(`http://127.0.0.1:5001/api/user/orders?username=${user.username}`);
+            const orders = await res.json();
+            const body = document.getElementById('historyBody');
+
+            if (orders.length > 0) {
+                document.getElementById('historyTable').style.display = 'table';
+                document.getElementById('emptyMsg').style.display = 'none';
+                body.innerHTML = orders.map(o => `
+                    <tr>
+                        <td style="color:#00f2ff; font-weight:800;">#${o.id}</td>
+                        <td style="color:#ccc;">${o.course_title}</td>
+                        <td style="color:#ff00ea; font-weight:800;">${o.price.toLocaleString()}đ</td>
+                        <td><span class="status-badge" style="border:1px solid #f1c40f; color:#f1c40f; padding:4px 8px; border-radius:5px; font-size:11px;">${o.status}</span></td>
+                    </tr>
+                `).join('');
+            }
+        } catch (e) { console.log(e); }
+    }
+    window.onload = loadHistory;
+</script>
+</body>
+</html>

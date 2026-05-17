@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý khách hàng | Admin DHTA ACADEMY</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css">
+    <style>
+        /* =======================================================
+           CSS TÙY CHỈNH DIỆN MẠO TRANG QUẢN LÝ KHÁCH HÀNG (CYBER)
+           ======================================================= */
+        .main-content { margin-left: 280px; flex: 1; padding: 50px; }
+        .page-title { font-size: 32px; font-weight: 800; margin-bottom: 40px; color: #00d2ff; text-transform: uppercase; }
+
+        /* Ô tìm kiếm học viên */
+        .search-container { margin-bottom: 30px; max-width: 400px; }
+        .search-container input {
+            width: 100%;
+            background: #07070f;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: 0.3s;
+        }
+        .search-container input:focus {
+            border-color: #00d2ff;
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+        }
+
+        /* Khung bảng hiển thị danh sách */
+        .table-container {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 25px;
+        }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 15px; color: #ff00cc; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid rgba(255, 255, 255, 0.05); }
+        td { padding: 18px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: #ccc; }
+
+        /* Thiết kế các Badge Phân Vai Trò Hệ Thống */
+        .badge-role {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .role-admin { border: 1px solid #ff00ea; color: #ff00ea; background: rgba(255, 0, 234, 0.05); }
+        .role-instructor { border: 1px solid #00d2ff; color: #00d2ff; background: rgba(0, 210, 255, 0.05); }
+        .role-student { border: 1px solid #7f8c8d; color: #a5a5a5; background: rgba(255, 255, 255, 0.02); }
+
+        /* Nút thao tác Chi tiết / Xóa */
+        .btn-d {
+            background: transparent;
+            border: 1px solid #00d2ff;
+            color: #00d2ff;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 8px;
+            transition: 0.3s;
+        }
+        .btn-d:hover { background: rgba(0, 210, 255, 0.1); box-shadow: 0 0 8px rgba(0, 210, 255, 0.3); }
+        
+        .btn-x {
+            background: transparent;
+            border: 1px solid #ff4d6d;
+            color: #ff4d6d;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-x:hover { background: rgba(255, 77, 109, 0.1); box-shadow: 0 0 8px rgba(255, 77, 109, 0.3); }
+
+        /* Cửa sổ Modal Chi Tiết Học Viên (Glassmorphism Effect) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 999;
+        }
+        .modal-content {
+            background: #0b0b1a;
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            padding: 35px;
+            border-radius: 20px;
+            width: 420px;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>ADMIN</h2>
+        <nav class="sidebar-nav" id="admin-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="courses.html"><i class="fas fa-book"></i> Khóa học</a>
+            <a href="training.html"><i class="fas fa-code"></i> Luyện tập</a>
+            <a href="events.html"><i class="fas fa-calendar-alt"></i> Sự kiện</a>
+            <a href="vouchers.html"><i class="fas fa-ticket-alt"></i> Mã giảm giá</a>
+            <a href="users.html"><i class="fas fa-users"></i> Khách hàng</a>
+            <a href="orders.html"><i class="fas fa-shopping-cart"></i> Đơn hàng</a>
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="javascript:void(0)" onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <h1 class="page-title">QUẢN LÝ KHÁCH HÀNG</h1>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" onkeyup="filterUsers()" placeholder="Tìm kiếm tài khoản học viên...">
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th>TÊN TÀI KHOẢN</th>
+                        <th>VAI TRÒ</th>
+                        <th>TRẠNG THÁI</th>
+                        <th style="text-align: center;">HÀNH ĐỘNG</th>
+                    </tr>
+                </thead>
+                <tbody id="user-list">
+                    <tr><td colspan="5" style="text-align:center; padding: 40px; color: #00d2ff;">Đang quét dữ liệu từ SQL Server...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="detailModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3 style="color:#00d2ff; margin-bottom:20px; font-weight:900; letter-spacing: 1px;">CHI TIẾT HỌC VIÊN</h3>
+            <div style="line-height: 2.2; font-size: 15px; color: #ddd;">
+                <p>Mã định danh ID: <b id="d-id" style="color:#00d2ff;"></b></p>
+                <p>Tên tài khoản: <b id="d-user" style="color: #fff;"></b></p>
+                <p>Vai trò hệ thống: <b id="d-role" style="text-transform: uppercase;"></b></p>
+                <p>Tình trạng: <b id="d-status"></b></p>
+            </div>
+            <button onclick="closeM()" style="width:100%; margin-top:25px; padding:12px; background:linear-gradient(90deg, #ff00ea, #ff4d6d); color:#fff; border:none; border-radius:10px; font-weight:800; cursor:pointer; transition: 0.3s;">ĐÓNG CỬA SỔ</button>
+        </div>
+    </div>
+
+    <script>
+        /* LOGIC TỰ ĐỘNG CHÈN CLASS ACTIVE SÁNG ĐÈN CHUẨN ĐỒNG BỘ */
+        const path = window.location.pathname;
+        document.querySelectorAll('#admin-nav a').forEach(a => { 
+            const href = a.getAttribute('href');
+            if(href && path.includes(href)) {
+                a.classList.add('active'); 
+            }
+        });
+
+        const API = "http://127.0.0.1:5001/api/admin/users";
+
+        // TẢI DANH SÁCH TÀI KHOẢN TỪ DATABASE GỐC
+        async function fetchUsers() {
+            try {
+                const res = await fetch(API);
+                const data = await res.json();
+                const tbody = document.getElementById('user-list');
+                
+                tbody.innerHTML = data.map(u => `
+                    <tr>
+                        <td style="color:#00d2ff; font-weight:800;">#${u.id}</td>
+                        <td><b style="color: #fff;">${u.username}</b></td>
+                        <td><span class="badge-role ${getRoleClass(u.role)}">${u.role}</span></td>
+                        <td><span style="color: ${u.is_active ? '#2ecc71' : '#ff4d6d'}; font-weight: bold;">
+                            ${u.is_active ? '● Hoạt động' : '○ Đã khóa'}
+                        </span></td>
+                        <td style="text-align: center;">
+                            <button class="btn-d" onclick="showDetail(${u.id}, '${u.username}', '${u.role}', ${u.is_active})">Chi tiết</button>
+                            <button class="btn-x" onclick="deleteUser(${u.id})">Xóa</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                document.getElementById('user-list').innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ff4d6d; padding:20px; font-weight: bold;">❌ Lỗi kết nối API! M kiểm tra lại Server Flask cổng 5001 nhé.</td></tr>';
+            }
+        }
+
+        // Hàm phân phối CSS Class cho từng vai trò riêng biệt
+        function getRoleClass(role) {
+            const r = role.toLowerCase();
+            if (r === 'admin') return 'role-admin';
+            if (r === 'instructor' || r === 'giangvien') return 'role-instructor';
+            return 'role-student';
+        }
+
+        // XÓA TÀI KHOẢN HỌC VIÊN
+        async function deleteUser(id) {
+            if(confirm("⚠️ M có chắc chắn muốn xóa vĩnh viễn tài khoản #" + id + " khỏi hệ thống không?")) {
+                await fetch(`${API}/delete/${id}`, { method: 'DELETE' });
+                fetchUsers();
+            }
+        }
+
+        // BẬT MODAL CHI TIẾT
+        function showDetail(id, user, role, active) {
+            document.getElementById('d-id').innerText = id;
+            document.getElementById('d-user').innerText = user;
+            document.getElementById('d-role').innerText = role;
+            
+            // Render màu chữ trạng thái bên trong modal cho đồng điệu
+            const statusTarget = document.getElementById('d-status');
+            statusTarget.innerText = active ? "Đang hoạt động trên hệ thống" : "Đã bị khóa / Ngừng sử dụng";
+            statusTarget.style.color = active ? "#2ecc71" : "#ff4d6d";
+
+            document.getElementById('detailModal').style.display = 'flex';
+        }
+
+        function closeM() { document.getElementById('detailModal').style.display = 'none'; }
+        
+        // BỘ LỌC TÌM KIẾM THEO TÊN TÀI KHOẢN LIVE
+        function filterUsers() {
+            let input = document.getElementById("searchInput").value.toUpperCase();
+            let rows = document.querySelectorAll("#user-list tr");
+            rows.forEach(r => { r.style.display = r.innerText.toUpperCase().includes(input) ? "" : "none"; });
+        }
+
+        function logout() { localStorage.removeItem("user"); location.href = "../account/login.html"; }
+        window.onload = fetchUsers;
+    </script>
+</body>
+</html>

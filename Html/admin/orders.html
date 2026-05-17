@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý đơn hàng | Admin DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css">
+    
+    <style>
+        /* CHỈ GIỮ LẠI CSS PHỤC VỤ CHO KHU VỰC BẢNG VÀ NỘI DUNG CHÍNH */
+        .main-content { margin-left: 280px; flex: 1; padding: 50px; }
+        .page-title { font-size: 32px; font-weight: 800; margin-bottom: 40px; color: #00d2ff; text-transform: uppercase; }
+
+        .table-box {
+            background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px; padding: 25px;
+        }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; color: #ff00cc; font-size: 13px; text-transform: uppercase; border-bottom: 2px solid rgba(255, 255, 255, 0.05); }
+        td { padding: 18px 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+
+        .st-select {
+            background: #000; color: #fff; border: 1px solid #444;
+            padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 700;
+        }
+        .st-pending { border-color: #f1c40f; color: #f1c40f; }
+        .st-confirmed { border-color: #00d2ff; color: #00d2ff; }
+        .st-completed { border-color: #2ecc71; color: #2ecc71; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>ADMIN</h2>
+        <nav class="sidebar-nav" id="admin-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="courses.html"><i class="fas fa-book"></i> Khóa học</a>
+            <a href="training.html"><i class="fas fa-code"></i> Luyện tập</a>
+            <a href="events.html"><i class="fas fa-calendar-alt"></i> Sự kiện</a>
+            <a href="vouchers.html"><i class="fas fa-ticket-alt"></i> Mã giảm giá</a>
+            <a href="users.html"><i class="fas fa-users"></i> Khách hàng</a>
+            <a href="orders.html"><i class="fas fa-shopping-cart"></i> Đơn hàng</a>
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="javascript:void(0)" onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <h1 class="page-title">Quản lý Đơn hàng</h1>
+        <div class="table-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th><th>Học viên</th><th>Khóa học</th><th>Giá</th><th>Trạng thái</th><th style="text-align:center;">Xóa</th>
+                    </tr>
+                </thead>
+                <tbody id="order-list"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        /* LOGIC TỰ ĐỘNG CHÈN CLASS ACTIVE SÁNG ĐÈN CHUẨN */
+        const path = window.location.pathname;
+        document.querySelectorAll('#admin-nav a').forEach(a => { 
+            const href = a.getAttribute('href');
+            if(href && path.includes(href)) {
+                a.classList.add('active'); 
+            }
+        });
+
+        const API = "http://127.0.0.1:5001/api/admin/orders";
+
+        async function fetchOrders() {
+            try {
+                const res = await fetch(`${API}?t=${Date.now()}`);
+                const data = await res.json();
+                document.getElementById('order-list').innerHTML = data.map(o => `
+                    <tr>
+                        <td style="color:#00d2ff; font-weight:800;">#${o.id}</td>
+                        <td style="font-weight:600;">${o.customer_name}</td>
+                        <td style="color:#ccc;">${o.course_title}</td>
+                        <td style="color:#2ecc71; font-weight:bold;">${o.price.toLocaleString()} đ</td>
+                        <td>
+                            <select class="st-select ${getStatusClass(o.status)}" onchange="updateStatus(${o.id}, this.value)">
+                                <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Chờ xác nhận</option>
+                                <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>Đã xác nhận</option>
+                                <option value="completed" ${o.status === 'completed' ? 'selected' : ''}>Hoàn thành</option>
+                            </select>
+                        </td>
+                        <td style="text-align:center;">
+                            <button onclick="del(${o.id})" style="background:none; border:none; color:#ff4d6d; cursor:pointer;"><i class="fas fa-trash-alt"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.log(e); }
+        }
+
+        async function updateStatus(id, val) {
+            const res = await fetch(`${API}/status/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: val })
+            });
+            if (res.ok) fetchOrders();
+        }
+
+        function getStatusClass(s) {
+            if(s === 'pending') return 'st-pending';
+            if(s === 'confirmed') return 'st-confirmed';
+            if(s === 'completed') return 'st-completed';
+            return '';
+        }
+
+        async function del(id) {
+            if(confirm("Xóa đơn này nhé?")) {
+                await fetch(`${API}/delete/${id}`, { method: 'DELETE' });
+                fetchOrders();
+            }
+        }
+
+        function logout() { localStorage.removeItem('user'); location.href = '../account/login.html'; }
+        window.onload = fetchOrders;
+    </script>
+</body>
+</html>

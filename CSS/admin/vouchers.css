@@ -1,0 +1,94 @@
+/* CSS/admin/vouchers.css */
+:root {
+    --bg-dark: #0b0118;
+    --side-bg: #1a0625;
+    --cyan: #00f2ff;
+    --pink: #ff00ea;
+    --glass: rgba(255, 255, 255, 0.05);
+}
+
+.main-content {
+    margin-left: 300px;
+    flex: 1;
+    padding: 40px;
+}
+
+/* ÉP TIÊU ĐỀ NỔI BẬT */
+.page-header h1 {
+    color: var(--cyan) !important;
+    font-size: 36px;
+    font-weight: 900;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(0, 242, 255, 0.8);
+    margin-bottom: 30px;
+}
+
+.add-form {
+    background: var(--glass);
+    padding: 25px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    gap: 15px;
+    margin-bottom: 40px;
+}
+
+.add-form input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid #333;
+    color: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    flex: 1;
+}
+
+.btn-add {
+    background: var(--pink);
+    color: #fff;
+    border: none;
+    padding: 0 25px;
+    border-radius: 10px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.table-container {
+    background: var(--glass);
+    border-radius: 20px;
+    padding: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+table th {
+    color: var(--pink);
+    text-align: left;
+    padding: 15px;
+    border-bottom: 2px solid rgba(255, 0, 234, 0.2);
+}
+
+table td {
+    padding: 18px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.v-code { color: var(--cyan); font-weight: 800; }
+.limit-val { color: var(--pink); font-weight: 800; }
+
+.btn-s {
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan);
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+.btn-x {
+    background: transparent;
+    border: 1px solid #ff4d6d;
+    color: #ff4d6d;
+    padding: 6px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}

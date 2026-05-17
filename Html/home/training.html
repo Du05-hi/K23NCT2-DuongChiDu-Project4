@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện Tập | DHTA ACADEMY Control Center</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../../CSS/training.css">
+    <link rel="stylesheet" href="../../CSS/header.css">
+</head>
+<body>
+
+<div id="header-placeholder"></div>
+
+<main class="container">
+    <div class="hero-section">
+        <p class="subtitle">TRAINING OPERATION</p>
+        <h1>CONTROL CENTER</h1>
+    </div>
+
+    <h2 class="section-title">Danh sách nhiệm vụ</h2>
+
+    <div class="practice-cards">
+        <div class="card card-easy" onclick="setDifficultyFilter('easy')">
+            <div class="side-glow"></div>
+            <i class="fas fa-dumbbell card-icon"></i>
+            <div class="card-info">
+                <span class="diff-text">Nhiệm vụ Dễ</span>
+                <span class="sub-text">Tổng số bài</span>
+                <span class="count" id="count-easy">0</span>
+            </div>
+            <i class="fas fa-chevron-right arrow"></i>
+        </div>
+
+        <div class="card card-med" onclick="setDifficultyFilter('medium')">
+            <div class="side-glow"></div>
+            <i class="fas fa-medal card-icon"></i>
+            <div class="card-info">
+                <span class="diff-text">Nhiệm vụ Vừa</span>
+                <span class="sub-text">Tổng số bài</span>
+                <span class="count" id="count-medium">0</span>
+            </div>
+            <i class="fas fa-chevron-right arrow"></i>
+        </div>
+
+        <div class="card card-hard" onclick="setDifficultyFilter('hard')">
+            <div class="side-glow"></div>
+            <i class="fas fa-skull card-icon"></i>
+            <div class="card-info">
+                <span class="diff-text">Nhiệm vụ Khó</span>
+                <span class="sub-text">Tổng số bài</span>
+                <span class="count" id="count-hard">0</span>
+            </div>
+            <i class="fas fa-chevron-right arrow"></i>
+        </div>
+    </div>
+
+    <div class="search-filter-section">
+        <div class="search-wrapper">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="quiz-search" placeholder="Nhập tên bài tập hoặc mã số (#)..." onkeyup="filterQuizzes()">
+        </div>
+        
+        <div class="filter-wrapper">
+            <select id="difficulty-filter" onchange="filterQuizzes()">
+                <option value="all">Tất cả cấp độ</option>
+                <option value="easy">Nhiệm vụ Dễ</option>
+                <option value="medium">Nhiệm vụ Vừa</option>
+                <option value="hard">Nhiệm vụ Khó</option>
+            </select>
+            <i class="fas fa-chevron-down select-icon"></i>
+        </div>
+    </div>
+
+    <div class="details-grid">
+        <div class="quiz-area">
+            <h3 class="grid-title">Luyện tập gần đây</h3>
+            
+            <div class="table-head">
+                <span>ID</span>
+                <span>Tên bài luyện tập</span>
+                <span>Thời gian</span>
+                <span style="text-align: center;">Thao tác</span>
+            </div>
+
+            <div id="quiz-container" class="quiz-rows">
+                </div>
+        </div>
+
+        <aside class="leaderboard">
+            <h3 class="grid-title"><i class="fas fa-trophy"></i> Bảng Xếp Hạng</h3>
+            <ul class="leader-list">
+                <li class="leader-item top-1">
+                    <span>1. Dương Chí Du</span> <b class="pts">9,450 pts</b>
+                </li>
+                <li class="leader-item">
+                    <span>2. Đinh Văn Hiếu</span> <b class="pts">8,800 pts</b>
+                </li>
+                <li class="leader-item">
+                    <span>3. Nguyễn Mạnh Tuấn</span> <b class="pts">8,200 pts</b>
+                </li>
+                <li class="leader-item">
+                    <span>4. Nguyễn Công Quyền Anh</span> <b class="pts">7,950 pts</b>
+                </li>
+            </ul>
+        </aside>
+    </div>
+
+    <button class="btn-more" onclick="alert('Đang tải thêm...')">Xem thêm nhiệm vụ</button>
+</main>
+
+<script>
+    let allQuizzes = [];
+
+    // 1. HÀM LOAD HEADER DÙNG CHUNG
+    async function loadSharedHeader() {
+        try {
+            const response = await fetch('../layout/header.html');
+            const data = await response.text();
+            document.getElementById('header-placeholder').innerHTML = data;
+
+            // Highlight menu "Luyện tập"
+            const menuItems = document.querySelectorAll('.nav-links-dhta li');
+            menuItems.forEach(li => {
+                if(li.getAttribute('onclick')?.includes('training.html')) {
+                    li.style.color = "#ff00cc"; // Màu hồng thương hiệu DHTA
+                }
+            });
+
+            // Sau khi có Header mới chạy logic checkAuth và nạp dữ liệu
+            checkAuth();
+            init(); 
+        } catch (err) {
+            console.error("Lỗi load Header DHTA!");
+        }
+    }
+
+    // 2. LOGIC KIỂM TRA ĐĂNG NHẬP & GIỎ HÀNG
+    function checkAuth() {
+        const userStr = localStorage.getItem('user');
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        const navAuth = document.getElementById('nav-auth');
+
+        if (userStr && navAuth) {
+            const user = JSON.parse(userStr);
+            navAuth.innerHTML = `
+                <div class="cart-wrapper" onclick="location.href='cart.html'">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="cart-badge" id="cart-count">${cart.length}</span>
+                </div>
+                <span class="user-info" style="color:white; margin:0 10px;">Chào, ${user.username}</span>
+                <button class="btn-logout-nav" onclick="logout()" style="border:1px solid #ff4d6d; color:#ff4d6d; background:none; padding:5px 12px; border-radius:20px; cursor:pointer; font-weight:700;">Đăng xuất</button>
+            `;
+        } else if (navAuth) {
+            navAuth.innerHTML = `<a href="../account/login.html" style="color:white; text-decoration:none; font-weight:700;">Đăng nhập</a>`;
+        }
+    }
+
+    // 3. LẤY DỮ LIỆU TỪ SQL QUA API (NHÓM 10)
+    async function init() {
+        try {
+            const res = await fetch("http://127.0.0.1:5001/api/training/stats");
+            const result = await res.json();
+            if(result.status === "success") {
+                allQuizzes = result.data;
+                document.getElementById('count-easy').innerText = result.easy;
+                document.getElementById('count-medium').innerText = result.medium;
+                document.getElementById('count-hard').innerText = result.hard;
+                render(allQuizzes);
+            }
+        } catch(e) { 
+            console.error("Lỗi Server cổng 5001!");
+            document.getElementById('quiz-container').innerHTML = "<p style='color:red; text-align:center; padding:20px;'>❌ Hãy bật app.py của nhóm 10 để load dữ liệu!</p>";
+        }
+    }
+
+    function filterQuizzes() {
+        const text = document.getElementById('quiz-search').value.toLowerCase();
+        const diff = document.getElementById('difficulty-filter').value;
+        const filtered = allQuizzes.filter(q => {
+            const matchText = q.title.toLowerCase().includes(text) || q.id.toString().includes(text);
+            const matchDiff = (diff === "all") || (q.difficulty === diff);
+            return matchText && matchDiff;
+        });
+        render(filtered);
+    }
+
+    function setDifficultyFilter(diff) {
+        document.getElementById('difficulty-filter').value = diff;
+        filterQuizzes();
+    }
+
+    function render(data) {
+        const container = document.getElementById('quiz-container');
+        if(!container) return;
+        container.innerHTML = data.map(q => `
+            <div class="quiz-item">
+                <span class="q-id">#${q.id}</span>
+                <span class="q-title">${q.title}</span>
+                <span class="q-time">${q.time} phút</span>
+                <button class="btn-start" onclick="location.href='exam.html?id=${q.id}'">Bắt đầu</button>
+            </div>
+        `).join('');
+    }
+
+    function logout() { localStorage.removeItem('user'); window.location.reload(); }
+
+    // KHỞI CHẠY BẰNG HÀM LOAD HEADER
+    window.onload = loadSharedHeader;
+</script>
+</body>
+</html>

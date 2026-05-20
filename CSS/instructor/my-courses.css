@@ -1,0 +1,84 @@
+/* =======================================================
+   CSS PHÂN HỆ KHÓA HỌC CỦA GIÁO VIÊN - ĐỒNG BỘ FORM CHUNG
+   ======================================================= */
+.main-content { 
+    margin-left: 280px; 
+    flex: 1; 
+    padding: 50px; 
+}
+
+.page-title { 
+    font-size: 32px; 
+    font-weight: 800; 
+    margin-bottom: 40px; 
+    color: #00d2ff; 
+    text-transform: uppercase; 
+}
+
+/* Lưới hiển thị danh sách khóa học dạng Card kính mờ */
+.courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+}
+
+.course-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 25px;
+    backdrop-filter: blur(15px);
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 200px;
+}
+
+.course-card:hover {
+    border-color: #00d2ff;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 210, 255, 0.15);
+}
+
+.course-info h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    line-height: 1.4;
+}
+
+.course-info p {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 6px;
+}
+
+.course-info .price {
+    color: #ff00cc;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+/* Nút bấm vào xem chi tiết lớp học hoặc quản lý bài giảng */
+.btn-manage {
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid rgba(0, 210, 255, 0.4);
+    color: #00d2ff;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 1px;
+}
+
+.btn-manage:hover {
+    background: #00d2ff;
+    color: #000;
+    box-shadow: 0 0 15px #00d2ff;
+}

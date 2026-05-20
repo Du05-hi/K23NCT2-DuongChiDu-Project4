@@ -65,6 +65,8 @@ def login():
                 "user": {"id": user.id, "username": user.username, "role": user.role.strip() if user.role else "student"}
             })
         return jsonify({"status": "error", "message": "Sai tài khoản hoặc mật khẩu!"}), 401
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Lỗi hệ thống: {str(e)}"}), 500
     finally:
         db.close()
 
@@ -73,6 +75,11 @@ def signup():
     data = request.json
     db = SessionLocal()
     try:
+        # Kiểm tra xem tên đăng ký đã tồn tại chưa để tránh lỗi DB
+        existing_user = db.query(User).filter(User.username == data.get('username')).first()
+        if existing_user:
+            return jsonify({"status": "error", "message": "Tài khoản này đã tồn tại!"}), 400
+
         new_user = User(
             username=data.get('username'),
             password=data.get('password'),
@@ -82,6 +89,7 @@ def signup():
         db.commit()
         return jsonify({"status": "success", "message": "Đăng ký thành công!"})
     except Exception as e:
+        db.rollback() # 🌟 THÊM DÒNG NÀY ĐỂ GIẢI PHÓNG HỆ THỐNG KHI GẶP LỖI TRÙNG DATA
         return jsonify({"status": "error", "message": str(e)}), 400
     finally:
         db.close()
@@ -872,6 +880,258 @@ def update_training_quiz(quiz_id):
     except Exception as e:
         db.rollback()
         return jsonify({"msg": f"Lỗi hệ thống: {str(e)}"}), 500
+    finally:
+        db.close()
+#=========================================== Api đánh giá
+from datetime import datetime
+
+# API 1: LẤY DANH SÁCH ĐÁNH GIÁ CỦA MỘT KHÓA HỌC
+@app.route('/api/courses/<int:course_id>/reviews', methods=['GET'])
+def get_course_reviews(course_id):
+    db = SessionLocal()
+    try:
+        # Lấy danh sách review của khóa học và kết hợp với bảng User để lấy tên người đánh giá
+        # (Giả định bảng User của m có trường username)
+        reviews = db.query(Review, User.username).join(User, Review.user_id == User.id).filter(Review.course_id == course_id).order_by(Review.created_at.desc()).all()
+        
+        result = []
+        for r, username in reviews:
+            result.append({
+                "id": r.id,
+                "username": username,
+                "rating": r.rating,
+                "comment": r.comment,
+                "created_at": r.created_at.strftime("%d/%m/%Y %H:%M") if r.created_at else ""
+            })
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"msg": f"Lỗi: {str(e)}"}), 500
+    finally:
+        db.close()
+
+# API 2: GỬI ĐÁNH GIÁ MỚI
+@app.route('/api/reviews/add', methods=['POST'])
+def add_review():
+    db = SessionLocal()
+    try:
+        data = request.json
+        course_id = data.get("course_id")
+        user_id = data.get("user_id") # Trong thực tế m lấy từ localStorage
+        rating = data.get("rating")
+        comment = data.get("comment")
+
+        if not course_id or not user_id or not rating:
+            return jsonify({"msg": "Vui lòng nhập đầy đủ thông tin và chọn số sao!"}), 400
+
+        # Khởi tạo đối tượng Review mới theo model của m
+        new_review = Review(
+            course_id=course_id,
+            user_id=user_id,
+            rating=int(rating),
+            comment=comment,
+            created_at=datetime.now()
+        )
+        
+        db.add(new_review)
+        db.commit()
+        return jsonify({"msg": "Đăng đánh giá thành công!"}), 201
+    except Exception as e:
+        db.rollback()
+        return jsonify({"msg": f"Lỗi hệ thống: {str(e)}"}), 500
+    finally:
+        db.close()
+#================================================= Api admin quản lí đánh giá
+@app.route('/api/admin/reviews', methods=['GET'])
+def admin_get_all_reviews():
+    db = SessionLocal()
+    try:
+        # Query kết hợp 3 bảng: Review, Course, User để lấy thông tin chi tiết đầy đủ
+        query_data = db.query(Review, Course.title, User.username)\
+            .join(Course, Review.course_id == Course.id)\
+            .join(User, Review.user_id == User.id)\
+            .order_by(Review.created_at.desc()).all()
+        
+        result = []
+        for r, course_title, username in query_data:
+            result.append({
+                "id": r.id,
+                "course_id": r.course_id,
+                "course_title": course_title,
+                "user_id": r.user_id,
+                "username": username,
+                "rating": r.rating,
+                "comment": r.comment,
+                "created_at": r.created_at.strftime("%d/%m/%Y %H:%M") if r.created_at else ""
+            })
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"msg": f"Lỗi hệ thống: {str(e)}"}), 500
+    finally:
+        db.close()
+
+# API (ADMIN) XÓA ĐÁNH GIÁ DỰA VÀO ID
+@app.route('/api/admin/reviews/delete/<int:review_id>', methods=['DELETE'])
+def admin_delete_review(review_id):
+    db = SessionLocal()
+    try:
+        review = db.query(Review).filter(Review.id == review_id).first()
+        if not review:
+            return jsonify({"msg": "Không tìm thấy đánh giá này trên hệ thống!"}), 404
+        
+        db.delete(review)
+        db.commit()
+        return jsonify({"msg": "Đã xóa đánh giá thành công!"}), 200
+    except Exception as e:
+        db.rollback()
+        return jsonify({"msg": f"Lỗi khi xóa: {str(e)}"}), 500
+    finally:
+        db.close()
+# API LẤY DANH SÁCH KHÓA HỌC MÀ GIÁO VIÊN ĐÓ ĐƯỢC GIAO DẠY
+@app.route('/api/instructor/<int:instructor_id>/courses', methods=['GET'])
+def get_instructor_courses(instructor_id):
+    db = SessionLocal()
+    try:
+        # Chỉ lọc ra những khóa học có instructor_id trùng với ID người đang đăng nhập
+        courses = db.query(Course).filter(Course.instructor_id == instructor_id).all()
+        
+        result = []
+        for c in courses:
+            result.append({
+                "id": c.id,
+                "title": c.title,
+                "price": float(c.price) if c.price else 0.0  # Ép kiểu số thực để render toLocaleString không lỗi
+            })
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"msg": f"Lỗi tải dữ liệu: {str(e)}"}), 500
+    finally:
+        db.close()
+# API THỐNG KÊ SỐ LIỆU CHO TRANG DASHBOARD CỦA GIÁO VIÊN
+@app.route('/api/instructor/<int:instructor_id>/stats', methods=['GET'])
+def get_instructor_stats(instructor_id):
+    db = SessionLocal()
+    try:
+        # 1. Đếm số khóa học thật sự thuộc về giáo viên này trong Database
+        total_courses = db.query(Course).filter(Course.instructor_id == instructor_id).count()
+        
+        # 2. Số lượng đề luyện tập (Quiz) - Tạm thời để số liệu demo đẹp để m báo cáo, sau này làm bảng Quiz sẽ đếm thật sau
+        total_quizzes = 3  
+        
+        # 3. Số lượng học viên tham gia học - Tạm thời để số liệu demo trực quan
+        total_students = 12
+        
+        # Trả về chuỗi JSON chứa các số liệu trên
+        return jsonify({
+            "total_courses": total_courses,
+            "total_students": total_students,
+            "total_quizzes": total_quizzes
+        }), 200
+    except Exception as e:
+        return jsonify({"msg": f"Lỗi hệ thống: {str(e)}"}), 500
+    finally:
+        db.close()
+# API LẤY DANH SÁCH ĐỀ THI TRẮC NGHIỆM THUỘC CÁC KHÓA HỌC DO GIÁO VIÊN DẠY
+@app.route('/api/instructor/<int:instructor_id>/quizzes', methods=['GET'])
+def get_instructor_quizzes(instructor_id):
+    db = SessionLocal()
+    try:
+        # Bước 1: Tìm tất cả các khóa học do giáo viên này phụ trách
+        my_courses = db.query(Course).filter(Course.instructor_id == instructor_id).all()
+        my_course_ids = [c.id for c in my_courses]
+        
+        if not my_course_ids:
+            return jsonify([]), 200
+            
+        # Bước 2: Lọc ra các đề thi thuộc về danh sách khóa học đó
+        # Dùng join để lấy luôn tên khóa học hiển thị ra giao diện cho đẹp
+        quizzes = db.query(Quiz, Course.title.label('course_title'))\
+                    .join(Course, Quiz.course_id == Course.id)\
+                    .filter(Quiz.course_id.in_(my_course_ids)).all()
+        
+        result = []
+        for q, course_title in quizzes:
+            result.append({
+                "id": q.id,
+                "title": q.title,
+                "course_title": course_title,
+                "time_limit": q.time_limit,
+                "pass_score": q.pass_score,
+                "difficulty": q.difficulty
+            })
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"msg": f"Lỗi lấy danh sách đề thi: {str(e)}"}), 500
+    finally:
+        db.close()
+from sqlalchemy import text
+# 1. API THÊM ĐỀ THI MỚI
+@app.route('/api/instructor/quizzes/add', methods=['POST'])
+def add_quiz():
+    data = request.json
+    db = SessionLocal()
+    try:
+        # Khởi tạo đối tượng Quiz mới từ dữ liệu Frontend gửi lên
+        new_quiz = Quiz(
+            course_id=int(data.get('course_id')),
+            title=data.get('title'),
+            time_limit=int(data.get('time_limit', 15)),
+            pass_score=float(data.get('pass_score', 5.0)),
+            difficulty=data.get('difficulty', 'easy')
+        )
+        db.add(new_quiz)
+        db.commit() # Lưu dữ liệu vào SQL Server
+        return jsonify({"status": "success", "message": "Thêm đề luyện tập mới thành công!"}), 200
+    except Exception as e:
+        db.rollback() # Giải phóng nghẽn dữ liệu nếu có lỗi xảy ra
+        return jsonify({"status": "error", "message": f"Lỗi thêm đề thi: {str(e)}"}), 500
+    finally:
+        db.close()
+
+# 2. API CHỈNH SỬA ĐỀ THI
+@app.route('/api/instructor/quizzes/update/<int:quiz_id>', methods=['PUT'])
+def update_quiz(quiz_id):
+    data = request.json
+    db = SessionLocal()
+    try:
+        # Tìm đề thi cũ trong Database theo ID
+        quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+        if not quiz:
+            return jsonify({"status": "error", "message": "Không tìm thấy đề thi cần sửa!"}), 44
+            
+        # Cập nhật các giá trị mới
+        quiz.course_id = int(data.get('course_id'))
+        quiz.title = data.get('title')
+        quiz.time_limit = int(data.get('time_limit'))
+        quiz.pass_score = float(data.get('pass_score'))
+        quiz.difficulty = data.get('difficulty')
+        
+        db.commit()
+        return jsonify({"status": "success", "message": "Cập nhật đề luyện tập thành công!"}), 200
+    except Exception as e:
+        db.rollback()
+        return jsonify({"status": "error", "message": f"Lỗi sửa đề thi: {str(e)}"}), 500
+    finally:
+        db.close()
+
+# 3. API XÓA ĐỀ THI
+@app.route('/api/instructor/quizzes/delete/<int:quiz_id>', methods=['DELETE'])
+def delete_quiz(quiz_id):
+    db = SessionLocal()
+    try:
+
+        quiz = db.query(Quiz).filter(Quiz.id == quiz_id).first()
+        if not quiz:
+            return jsonify({"status": "error", "message": "Không tìm thấy đề thi cần xóa!"}), 404
+            
+        
+        db.execute(text("DELETE FROM g10quiz_results WHERE quiz_id = :qid"), {"qid": quiz_id})
+        
+        db.delete(quiz)
+        db.commit()
+        return jsonify({"status": "success", "message": "Xóa đề luyện tập và các dữ liệu liên quan thành công!"}), 200
+    except Exception as e:
+        db.rollback()
+        return jsonify({"status": "error", "message": f"Lỗi xóa đề thi: {str(e)}"}), 500
     finally:
         db.close()
 # =====================================================================

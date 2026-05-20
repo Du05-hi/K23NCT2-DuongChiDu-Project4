@@ -30,13 +30,13 @@
         <button class="btn-login" onclick="handleLogin()">Đăng nhập</button>
 
         <div class="social-login">
-    <p>Hoặc tiếp tục với</p>
-    <div class="social-icons">
-        <div class="icon" title="Google"><i class="fab fa-google"></i></div>
-        <div class="icon" title="Facebook"><i class="fab fa-facebook-f"></i></div>
-        <div class="icon" title="GitHub"><i class="fab fa-github"></i></div>
-    </div>
-</div>
+            <p>Hoặc tiếp tục với</p>
+            <div class="social-icons">
+                <div class="icon" title="Google"><i class="fab fa-google"></i></div>
+                <div class="icon" title="Facebook"><i class="fab fa-facebook-f"></i></div>
+                <div class="icon" title="GitHub"><i class="fab fa-github"></i></div>
+            </div>
+        </div>
 
         <p class="switch">
             Chưa có tài khoản?
@@ -84,8 +84,21 @@
                 // Lưu thông tin user vào bộ nhớ trình duyệt để các trang khác nhận diện
                 localStorage.setItem('user', JSON.stringify(data.user));
                 
-                // Chuyển hướng thẳng về trang chủ
-                window.location.href = "../home/index.html"; 
+                // ==================== LOGIC PHÂN QUYỀN ĐIỀU HƯỚNG TỰ ĐỘNG MỚI CẬP NHẬT ====================
+                const userRole = data.user.role ? data.user.role.toLowerCase() : "student";
+
+                if (userRole === "admin") {
+                    // Nếu role là ADMIN -> Chuyển hướng vào trang quản trị tối cao
+                    window.location.href = "../admin/dashboard.html";
+                } else if (userRole === "instructor") {
+                    // Nếu role là GIÁO VIÊN -> Chuyển hướng vào trang quản trị chuyên môn giáo viên
+                    window.location.href = "../instructor/dashboard.html";
+                } else {
+                    // Nếu là HỌC SINH/MẶC ĐỊNH -> Đẩy về giao diện học viên bình thường
+                    window.location.href = "../home/index.html";
+                }
+                // =========================================================================================
+                
             } else {
                 // Báo lỗi: Sai mật khẩu hoặc tài khoản không tồn tại
                 alert("Lỗi: " + data.message); 

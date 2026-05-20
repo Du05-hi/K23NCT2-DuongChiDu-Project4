@@ -5,7 +5,6 @@
     <title>Chi Tiết Khóa Học | Cyber-LMS Premium</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../CSS/course-detail.css">
-</head>
     <style>
         /* =======================================================
            1. CSS HỆ THỐNG & HEADER (CÓ GIỎ HÀNG ICON)
@@ -74,7 +73,13 @@
         .btn-buy { width: 100%; padding: 18px; background: var(--primary); color: #000; border: none; border-radius: 15px; font-weight: 800; text-transform: uppercase; cursor: pointer; margin-bottom: 15px; transition: 0.3s; }
         .btn-buy:hover { transform: scale(1.03); box-shadow: 0 0 30px var(--primary); }
         .btn-cart { width: 100%; padding: 15px; background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.5); border-radius: 15px; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: 0.3s; }
+
+        /* CSS BỔ SUNG KHU VỰC REVIEW ĐÁNH GIÁ */
+        #reviewComment:focus { border-color: var(--primary) !important; box-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
+        .review-item { background: rgba(0, 0, 0, 0.15); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px; margin-bottom: 15px; transition: 0.3s; }
+        .review-item:hover { background: rgba(255, 255, 255, 0.02); border-color: var(--primary); }
     </style>
+</head>
 <body>
 
 <nav class="navbar">
@@ -85,7 +90,7 @@
         <li onclick="location.href='training.html'">Luyện tập</li> 
         <li onclick="location.href='event.html'">Sự kiện</li>
         <li onclick="location.href='about.html'">Giới thiệu</li>
-        <li onclick="location.href='coupon.html'">Mã giám giá</li>
+        <li onclick="location.href='coupon.html'">Mã giảm giá</li>
     </ul>
     <div class="auth" id="nav-auth"></div>
 </nav>
@@ -131,6 +136,27 @@
                 </div>
             </div>
         </div>
+
+        <div class="section-panel">
+            <h3><i class="fas fa-comments"></i> Đánh giá khóa học</h3>
+            
+            <div style="margin-bottom: 30px;">
+                <div class="rating-stars" style="margin-bottom: 15px; font-size: 24px;">
+                    <span style="font-size: 15px; color: #eee; margin-right: 10px; font-weight: 600;">Mức độ hài lòng:</span>
+                    <span class="star" data-value="1" style="cursor:pointer; color: rgba(255,255,255,0.2); transition: 0.2s;">★</span>
+                    <span class="star" data-value="2" style="cursor:pointer; color: rgba(255,255,255,0.2); transition: 0.2s;">★</span>
+                    <span class="star" data-value="3" style="cursor:pointer; color: rgba(255,255,255,0.2); transition: 0.2s;">★</span>
+                    <span class="star" data-value="4" style="cursor:pointer; color: rgba(255,255,255,0.2); transition: 0.2s;">★</span>
+                    <span class="star" data-value="5" style="cursor:pointer; color: rgba(255,255,255,0.2); transition: 0.2s;">★</span>
+                </div>
+                <textarea id="reviewComment" placeholder="Viết nhận xét của m tại đây..." style="width: 100%; height: 90px; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: 15px; color: #fff; padding: 15px; outline: none; font-size: 14px; resize: none; transition: 0.3s; margin-bottom: 15px;"></textarea>
+                <button onclick="submitReview()" style="padding: 12px 25px; background: linear-gradient(to right, var(--secondary), var(--accent)); color: #fff; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;">Gửi nhận xét</button>
+            </div>
+
+            <div id="reviews-list-container" style="margin-top: 25px;">
+                <p style="color: rgba(255,255,255,0.4); font-style: italic; font-size: 14px;">Đang tải các đánh giá của học viên...</p>
+            </div>
+        </div>
     </main>
 
     <aside class="sticky-sidebar">
@@ -148,6 +174,7 @@
 
 <script>
     const API_URL = 'http://127.0.0.1:5001/api';
+    let selectedRating = 0;
 
     // 1. Đồng bộ Header Master
     function syncHeader() {
@@ -189,6 +216,89 @@
         alert("✅ Đã thêm vào giỏ hàng thành công!");
     }
 
+    // ==================== LOGIC XỬ LÝ ĐÁNH GIÁ CHÈN THÊM MỚI ====================
+    function setupStarRating() {
+        document.querySelectorAll('.rating-stars .star').forEach(star => {
+            star.addEventListener('mouseover', function() {
+                highlightStars(this.getAttribute('data-value'));
+            });
+            star.addEventListener('mouseout', function() {
+                highlightStars(selectedRating);
+            });
+            star.addEventListener('click', function() {
+                selectedRating = this.getAttribute('data-value');
+                highlightStars(selectedRating);
+            });
+        });
+    }
+
+    function highlightStars(count) {
+        document.querySelectorAll('.rating-stars .star').forEach(star => {
+            star.style.color = star.getAttribute('data-value') <= count ? '#f1c40f' : 'rgba(255, 255, 255, 0.2)';
+        });
+    }
+
+    async function loadReviews(courseId) {
+        try {
+            const res = await fetch(`${API_URL}/courses/${courseId}/reviews`);
+            const reviews = await res.json();
+            const container = document.getElementById('reviews-list-container');
+            
+            if (reviews.length === 0) {
+                container.innerHTML = `<p style="color: rgba(255,255,255,0.4); font-style: italic; font-size: 14px;">Chưa có nhận xét nào. Hãy viết đánh giá đầu tiên nhé!</p>`;
+                return;
+            }
+
+            container.innerHTML = reviews.map(r => `
+                <div class="review-item">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="color: var(--primary); font-weight: bold; font-size: 14px;"><i class="fas fa-user"></i> ${r.username}</span>
+                        <span style="color: rgba(255,255,255,0.3); font-size: 12px;">${r.created_at}</span>
+                    </div>
+                    <div style="color: #f1c40f; margin-bottom: 8px; font-size: 12px;">
+                        ${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}
+                    </div>
+                    <p style="color: #ddd; font-size: 14px; line-height: 1.5;">${r.comment || 'Không có bình luận.'}</p>
+                </div>
+            `).join('');
+        } catch (e) {
+            console.log("Không tải được danh sách đánh giá!");
+        }
+    }
+
+    async function submitReview() {
+        const id = new URLSearchParams(window.location.search).get('id') || 1;
+        const user = JSON.parse(localStorage.getItem('user')) || { id: 1 };
+        const comment = document.getElementById('reviewComment').value.trim();
+
+        if (selectedRating === 0) {
+            alert("⚠️ Vui lòng click chọn số sao để đánh giá!");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/reviews/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    course_id: parseInt(id),
+                    user_id: user.id,
+                    rating: parseInt(selectedRating),
+                    comment: comment
+                })
+            });
+            if (res.ok) {
+                alert("🎉 Đăng đánh giá thành công!");
+                document.getElementById('reviewComment').value = "";
+                selectedRating = 0;
+                highlightStars(0);
+                loadReviews(id);
+            }
+        } catch (e) {
+            alert("❌ Lỗi gửi đánh giá!");
+        }
+    }
+
     async function init() {
         const id = new URLSearchParams(window.location.search).get('id');
         if (id) {
@@ -201,6 +311,10 @@
                     document.getElementById('coursePrice').innerText = Number(course.price).toLocaleString('vi-VN') + " đ";
                 }
             } catch (e) { console.log("Lỗi server API!"); }
+            
+            // Kích hoạt tải review và cấu hình sao cho khóa học hiện tại
+            loadReviews(id);
+            setupStarRating();
         }
         syncHeader();
     }

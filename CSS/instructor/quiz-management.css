@@ -1,0 +1,185 @@
+/* =======================================================
+   CSS PHÂN HỆ QUẢN LÝ ĐỀ THI - ĐỒNG BỘ STYLE CYBERPUNK
+   ======================================================= */
+.main-content { 
+    margin-left: 280px; 
+    flex: 1; 
+    padding: 50px; 
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.page-title { 
+    font-size: 32px; 
+    font-weight: 800; 
+    color: #00d2ff; 
+    text-transform: uppercase; 
+    margin: 0;
+}
+
+/* Nút thêm đề thi mới phát sáng Neon */
+.btn-add-quiz {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #00d2ff, #ff00cc);
+    border: none;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+}
+
+.btn-add-quiz:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(255, 0, 204, 0.8);
+}
+
+/* Bảng kính mờ hiển thị danh sách đề */
+.quiz-table-container {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 20px;
+    backdrop-filter: blur(15px);
+}
+
+.quiz-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.quiz-table th {
+    padding: 15px;
+    color: #00d2ff;
+    font-weight: 700;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.quiz-table td {
+    padding: 15px;
+    color: #fff;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 15px;
+}
+
+.quiz-table tr:hover td {
+    background: rgba(255, 255, 255, 0.01);
+}
+
+/* Badge hiển thị độ khó */
+.badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.badge.easy { background: rgba(0, 210, 255, 0.2); color: #00d2ff; border: 1px solid #00d2ff; }
+.badge.hard { background: rgba(255, 0, 204, 0.2); color: #ff00cc; border: 1px solid #ff00cc; }
+
+/* Nút thao tác sửa/xóa */
+.btn-action {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-right: 5px;
+}
+.btn-action:hover {
+    border-color: #00d2ff;
+    color: #00d2ff;
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.3);
+}
+
+/* POPUP MODAL FORM (HỖ TRỢ THÊM & SỬA) */
+.modal { 
+    display: none; 
+    position: fixed; 
+    z-index: 1000; 
+    left: 0; 
+    top: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(5px); 
+    justify-content: center; 
+    align-items: center; 
+}
+.modal-content { 
+    background: rgba(20, 20, 30, 0.95); 
+    border: 1px solid rgba(0, 210, 255, 0.3); 
+    padding: 30px; 
+    border-radius: 20px; 
+    width: 500px; 
+    box-shadow: 0 0 30px rgba(0, 210, 255, 0.2); 
+    color: #fff; 
+}
+.modal-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    padding-bottom: 10px; 
+}
+.modal-header h2 { 
+    margin: 0; 
+    color: #00d2ff; 
+    font-size: 22px; 
+}
+.close-btn { 
+    background: transparent; 
+    border: none; 
+    color: #fff; 
+    font-size: 20px; 
+    cursor: pointer; 
+}
+.form-group { 
+    margin-bottom: 15px; 
+}
+.form-group label { 
+    display: block; 
+    margin-bottom: 8px; 
+    color: #aaa; 
+    font-size: 14px; 
+}
+.form-group input, .form-group select { 
+    width: 100%; 
+    padding: 10px; 
+    background: rgba(255, 255, 255, 0.05); 
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    border-radius: 8px; 
+    color: #fff; 
+    outline: none; 
+    box-sizing: border-box; 
+}
+.form-group input:focus, .form-group select:focus { 
+    border-color: #00d2ff; 
+}
+.btn-submit { 
+    width: 100%; 
+    padding: 12px; 
+    background: linear-gradient(135deg, #00d2ff, #ff00cc); 
+    border: none; 
+    color: #fff; 
+    font-weight: bold; 
+    border-radius: 8px; 
+    cursor: pointer; 
+    margin-top: 10px; 
+    transition: 0.3s;
+}
+.btn-submit:hover { 
+    box-shadow: 0 0 15px #ff00cc; 
+}

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khóa học của tôi | Admin DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css">
+    <link rel="stylesheet" href="/CSS/instructor/my-courses.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>TEACHER</h2>
+        <nav class="sidebar-nav" id="instructor-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="my-courses.html"><i class="fas fa-book-open"></i> Khóa học của tôi</a>
+            <a href="quiz-management.html"><i class="fas fa-edit"></i> Soạn đề luyện tập</a>
+            <a href="student-grades.html"><i class="fas fa-graduation-cap"></i> Điểm số học viên</a>
+            <a href="course-reviews.html"><i class="fas fa-comments"></i> Phản hồi đánh giá</a>
+            
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="javascript:void(0)" onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <h1 class="page-title">Khóa học phụ trách</h1>
+        
+        <div class="courses-grid" id="instructor-courses-container">
+            <p style="color: #00d2ff; font-style: italic;">Đang tìm kiếm danh sách khóa học được phân công...</p>
+        </div>
+    </main>
+
+    <script>
+        /* THẮP SÁNG TAB SIDEBAR HOẠT ĐỘNG */
+        const path = window.location.pathname;
+        document.querySelectorAll('#instructor-nav a').forEach(a => { 
+            const href = a.getAttribute('href');
+            if(href && path.includes(href)) { a.classList.add('active'); }
+        });
+
+        // ĐỌC THÔNG TIN ĐỊNH DANH GIÁO VIÊN
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+
+        async function loadInstructorCourses() {
+            if (!currentUser) {
+                location.href = '../account/login.html';
+                return;
+            }
+
+            try {
+                // Gọi API 1 đã viết trong app.py để lọc khóa học theo instructor_id
+                const res = await fetch(`http://127.0.0.1:5001/api/instructor/${currentUser.id}/courses`);
+                const courses = await res.json();
+                const container = document.getElementById('instructor-courses-container');
+
+                if (courses.length === 0) {
+                    container.innerHTML = `<p style="color: rgba(255,255,255,0.4); font-style: italic;">M chưa được phân công quản lý khóa học nào trên hệ thống.</p>`;
+                    return;
+                }
+
+                // Đổ dữ liệu vòng lặp ra giao diện Card
+                container.innerHTML = courses.map(c => `
+                    <div class="course-card">
+                        <div class="course-info">
+                            <h3>${c.title}</h3>
+                            <p>Mã khóa học: <span style="color:#00d2ff; font-weight:bold;">#${c.id}</span></p>
+                            <p>Học phí: <span class="price">${Number(c.price).toLocaleString('vi-VN')} đ</span></p>
+                        </div>
+                        <button class="btn-manage" onclick="alert('Tính năng quản lý bài học chi tiết đang được xây dựng!')">Quản lý bài giảng</button>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                document.getElementById('instructor-courses-container').innerHTML = `<p style="color: #ff4d6d; font-weight:bold;">❌ Không thể kết nối với máy chủ API để lấy danh sách khóa học!</p>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            location.href = '../account/login.html';
+        }
+
+        window.onload = loadInstructorCourses;
+    </script>
+</body>
+</html>

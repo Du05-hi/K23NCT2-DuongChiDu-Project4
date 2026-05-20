@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soạn đề luyện tập | Admin DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css">
+    <link rel="stylesheet" href="/CSS/instructor/quiz-management.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>TEACHER</h2>
+        <nav class="sidebar-nav" id="instructor-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="my-courses.html"><i class="fas fa-book-open"></i> Khóa học của tôi</a>
+            <a href="quiz-management.html"><i class="fas fa-edit"></i> Soạn đề luyện tập</a>
+            <a href="student-grades.html"><i class="fas fa-graduation-cap"></i> Điểm số học viên</a>
+            <a href="course-reviews.html"><i class="fas fa-comments"></i> Phản hồi đánh giá</a>
+            
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="javascript:void(0)" onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Quản lý đề luyện tập</h1>
+            <button class="btn-add-quiz" onclick="openModal()">
+                <i class="fas fa-plus"></i> Tạo đề luyện tập mới
+            </button>
+        </div>
+        
+        <div class="quiz-table-container">
+            <table class="quiz-table">
+                <thead>
+                    <tr>
+                        <th>Mã đề</th>
+                        <th>Tên đề luyện tập</th>
+                        <th>Thuộc khóa học</th>
+                        <th>Thời gian (Phút)</th>
+                        <th>Điểm đạt</th>
+                        <th>Độ khó</th>
+                        <th>Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="quiz-list-container">
+                    <tr>
+                        <td colspan="7" style="color: #00d2ff; text-align: center; font-style: italic;">Đang tải danh sách đề thi trắc nghiệm...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <div id="quizModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title-text">Tạo đề luyện tập mới</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="quizForm">
+                <div class="form-group">
+                    <label>Chọn khóa học phụ trách</label>
+                    <select id="form-course-id"></select>
+                </div>
+                <div class="form-group">
+                    <label>Tên đề luyện tập</label>
+                    <input type="text" id="form-title" placeholder="Ví dụ: Kiểm tra trắc nghiệm Giữa kỳ">
+                </div>
+                <div class="form-group">
+                    <label>Thời gian làm bài (Phút)</label>
+                    <input type="number" id="form-time" value="15">
+                </div>
+                <div class="form-group">
+                    <label>Điểm số để đạt (Pass Score)</label>
+                    <input type="number" step="0.1" id="form-pass" value="5.0">
+                </div>
+                <div class="form-group">
+                    <label>Độ khó</label>
+                    <select id="form-difficulty">
+                        <option value="easy">Easy (Dễ)</option>
+                        <option value="hard">Hard (Khó)</option>
+                    </select>
+                </div>
+                <button class="btn-submit" onclick="submitQuiz()">Xác nhận lưu lại</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* THẮP SÁNG TAB SIDEBAR HOẠT ĐỘNG */
+        const path = window.location.pathname;
+        document.querySelectorAll('#instructor-nav a').forEach(a => { 
+            const href = a.getAttribute('href');
+            if(href && path.includes(href)) { a.classList.add('active'); }
+        });
+
+        // Đọc thông tin định danh giáo viên đang đăng nhập từ bộ nhớ tạm
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+        let isEditMode = false;
+        let currentEditQuizId = null;
+
+        // 1. TẢI DANH SÁCH ĐỀ THI TỪ API BACKEND LÊN BẢNG
+        async function loadInstructorQuizzes() {
+            if (!currentUser) { location.href = '../account/login.html'; return; }
+            try {
+                const res = await fetch(`http://127.0.0.1:5001/api/instructor/${currentUser.id}/quizzes`);
+                const quizzes = await res.json();
+                const container = document.getElementById('quiz-list-container');
+
+                if (quizzes.length === 0) {
+                    container.innerHTML = `<tr><td colspan="7" style="text-align: center; color: rgba(255,255,255,0.4);">M chưa tạo đề luyện tập nào cho các khóa học phụ trách.</td></tr>`;
+                    return;
+                }
+
+                // Đổ dữ liệu thật vào bảng kèm liên kết ID động cho Sửa và Xóa
+                container.innerHTML = quizzes.map(q => `
+                    <tr>
+                        <td><span style="color: #00d2ff; font-weight: bold;">#${q.id}</span></td>
+                        <td><strong>${q.title}</strong></td>
+                        <td><span style="color: #aaa;">${q.course_title}</span></td>
+                        <td>${q.time_limit} phút</td>
+                        <td><span style="color: #ff00cc; font-weight: bold;">${q.pass_score}</span></td>
+                        <td><span class="badge ${q.difficulty}">${q.difficulty}</span></td>
+                        <td>
+                            <button class="btn-action" title="Sửa đề thi" onclick="openEditModal(${q.id}, '${q.title}', ${q.time_limit}, ${q.pass_score}, '${q.difficulty}', ${q.course_id})"><i class="fas fa-edit"></i></button>
+                            <button class="btn-action" title="Xóa đề thi" onclick="deleteQuizByID(${q.id}, '${q.title}')" style="color: #ff4d6d;"><i class="fas fa-trash-alt"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                document.getElementById('quiz-list-container').innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ff4d6d; font-weight: bold;">❌ Không thể kết nối API danh sách đề thi!</td></tr>`;
+            }
+        }
+
+        // 2. LOGIC ĐÓNG MỞ POPUP FORM MODAL (ĐỒNG BỘ ĐỢI LOAD DROPDOWN)
+        function closeModal() { 
+            document.getElementById('quizModal').style.display = 'none'; 
+        }
+
+        // Mở Form ở chế độ THÊM MỚI
+        async function openModal() {
+            isEditMode = false;
+            currentEditQuizId = null;
+            document.getElementById('modal-title-text').innerText = "Tạo đề luyện tập mới";
+            document.getElementById('form-title').value = "";
+            document.getElementById('form-time').value = "15";
+            document.getElementById('form-pass').value = "5.0";
+            
+            // Đợi nạp xong danh sách khóa học vào select rồi mới mở popup hiện lên
+            await loadInstructorCoursesToSelect();
+            document.getElementById('quizModal').style.display = 'flex';
+        }
+
+        // Mở Form ở chế độ CHỈNH SỬA (Đã xử lý đồng bộ gán dữ liệu chính xác)
+        async function openEditModal(id, title, time, pass, difficulty, courseId) {
+            isEditMode = true;
+            currentEditQuizId = id;
+            document.getElementById('modal-title-text').innerText = "Chỉnh sửa đề luyện tập";
+            
+            // Ép hệ thống đợi nạp xong hoàn toàn danh sách khóa học rồi mới fill dữ liệu vào
+            await loadInstructorCoursesToSelect();
+            
+            document.getElementById('form-course-id').value = courseId;
+            document.getElementById('form-title').value = title;
+            document.getElementById('form-time').value = time;
+            document.getElementById('form-pass').value = pass;
+            document.getElementById('form-difficulty').value = difficulty;
+            
+            document.getElementById('quizModal').style.display = 'flex';
+        }
+
+        // Hàm nạp danh sách khóa học động theo giảng viên
+        async function loadInstructorCoursesToSelect() {
+            try {
+                const res = await fetch(`http://127.0.0.1:5001/api/instructor/${currentUser.id}/courses`);
+                const courses = await res.json();
+                const select = document.getElementById('form-course-id');
+                
+                select.innerHTML = courses.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+            } catch (e) { 
+                console.log("Lỗi nạp danh sách khóa học phụ trách vào form."); 
+            }
+        }
+
+        // 3. CHỨC NĂNG XỬ LÝ LƯU DỮ LIỆU (PHÂN NHÁNH POST/PUT)
+        async function submitQuiz() {
+            const course_id = document.getElementById('form-course-id').value;
+            const title = document.getElementById('form-title').value;
+            const time_limit = document.getElementById('form-time').value;
+            const pass_score = document.getElementById('form-pass').value;
+            const difficulty = document.getElementById('form-difficulty').value;
+
+            if (!course_id) { alert("Chưa có khóa học nào được chọn!"); return; }
+            if (!title) { alert("Vui lòng nhập tên đề luyện tập!"); return; }
+
+            let url = 'http://127.0.0.1:5001/api/instructor/quizzes/add';
+            let method = 'POST';
+
+            if (isEditMode) {
+                url = `http://127.0.0.1:5001/api/instructor/quizzes/update/${currentEditQuizId}`;
+                method = 'PUT';
+            }
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ course_id, title, time_limit, pass_score, difficulty })
+                });
+                const data = await res.json();
+
+                if (data.status === "success") {
+                    alert("🎉 " + data.message);
+                    closeModal();
+                    loadInstructorQuizzes(); // Reload lại bảng không cần F5
+                } else { 
+                    alert("❌ Lỗi: " + data.message); 
+                }
+            } catch (e) { 
+                alert("❌ Lỗi kết nối server xử lý dữ liệu đề thi!"); 
+            }
+        }
+
+        // 4. CHỨC NĂNG XÓA ĐỀ THI
+        async function deleteQuizByID(quizId, quizTitle) {
+            if (confirm(`M có chắc chắn muốn xóa đề luyện tập: "${quizTitle}" không?`)) {
+                try {
+                    const res = await fetch(`http://127.0.0.1:5001/api/instructor/quizzes/delete/${quizId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await res.json();
+
+                    if (data.status === "success") {
+                        alert("🗑️ " + data.message);
+                        loadInstructorQuizzes(); // Làm sạch bảng sau khi xóa thành công
+                    } else { 
+                        alert("❌ Lỗi: " + data.message); 
+                    }
+                } catch (e) { 
+                    alert("❌ Lỗi kết nối máy chủ!"); 
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            location.href = '../account/login.html';
+        }
+
+        window.onload = loadInstructorQuizzes;
+    </script>
+</body>
+</html>

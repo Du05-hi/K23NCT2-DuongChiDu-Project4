@@ -61,11 +61,13 @@ class Lesson(Base):
 # ==========================================
 class Quiz(Base):
     __tablename__ = "g10quizzes"
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String(255))  
-    time_limit = Column(Integer)
-    difficulty = Column(String(20))
-    pass_score = Column(Integer, default=50)
+    
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    course_id = Column(Integer, ForeignKey('g10courses.id'), nullable=True)
+    time_limit = Column(Integer, nullable=False)
+    pass_score = Column(Float, nullable=False)
+    difficulty = Column(String(50), nullable=False)
+    title = Column(String(255), nullable=False) 
 
 class Question(Base):
     __tablename__ = "g10questions"

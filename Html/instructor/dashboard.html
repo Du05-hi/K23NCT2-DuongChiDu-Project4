@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan giảng viên | Admin DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css"> <style>
+        .main-content { margin-left: 280px; padding: 50px; flex: 1; }
+        .page-title { font-size: 32px; font-weight: 800; margin-bottom: 40px; color: #00d2ff; text-transform: uppercase; }
+        
+        /* HỆ THỐNG THẺ CARD THỐNG KÊ NEON */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 40px; }
+        .stat-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); padding: 30px; border-radius: 20px; backdrop-filter: blur(15px); display: flex; align-items: center; justify-content: space-between; transition: 0.3s; }
+        .stat-card:hover { border-color: #ff00cc; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(255, 0, 204, 0.1); }
+        .stat-info h3 { font-size: 14px; color: #aaa; text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
+        .stat-info p { font-size: 36px; font-weight: 900; color: #fff; }
+        .stat-icon { font-size: 36px; color: #00d2ff; text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
+
+        /* KHU VỰC CHÀO MỪNG GIÁO VIÊN */
+        .welcome-box { background: linear-gradient(135deg, rgba(0,210,255,0.1), rgba(255,0,204,0.1)); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 40px; margin-bottom: 40px; backdrop-filter: blur(20px); }
+        .welcome-box h2 { font-size: 28px; margin-bottom: 10px; color: #fff; font-weight: 800; }
+        .welcome-box p { color: #ccc; font-size: 15px; line-height: 1.6; }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>TEACHER</h2>
+        <nav class="sidebar-nav" id="instructor-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="my-courses.html"><i class="fas fa-book-open"></i> Khóa học của tôi</a>
+            <a href="quiz-management.html"><i class="fas fa-edit"></i> Soạn đề luyện tập</a>
+            <a href="student-grades.html"><i class="fas fa-graduation-cap"></i> Điểm số học viên</a>
+            <a href="course-reviews.html"><i class="fas fa-comments"></i> Phản hồi đánh giá</a>
+            
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="javascript:void(0)" onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        
+        <div class="welcome-box">
+            <h2>Chào mừng quay trở lại, Giảng viên <span id="instructor-name" style="color: #00d2ff;">...</span>!</h2>
+            <p>Hệ thống Cyber-LMS đã sẵn sàng. Hôm nay m có thể cập nhật giáo án bài học, soạn thảo thêm đề luyện tập trắc nghiệm mới và kiểm tra tiến độ điểm số của các học viên đang theo học nhé.</p>
+        </div>
+
+        <h1 class="page-title">Bảng số liệu tổng quan</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Khóa học phụ trách</h3>
+                    <p id="stat-courses">0</p>
+                </div>
+                <div class="stat-icon" style="color: #00d2ff;"><i class="fas fa-book-reader"></i></div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Tổng số học viên</h3>
+                    <p id="stat-students">0</p>
+                </div>
+                <div class="stat-icon" style="color: #ff00cc;"><i class="fas fa-user-graduate"></i></div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-info">
+                    <h3>Đề luyện tập đã tạo</h3>
+                    <p id="stat-quizzes">0</p>
+                </div>
+                <div class="stat-icon" style="color: #ff4d6d;"><i class="fas fa-tasks"></i></div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        /* SÁNG ĐÈN TAB SIDEBAR TỰ ĐỘNG */
+        const path = window.location.pathname;
+        document.querySelectorAll('#instructor-nav a').forEach(a => { 
+            const href = a.getAttribute('href');
+            if(href && path.includes(href)) { a.classList.add('active'); }
+        });
+
+        // LẤY DỮ LIỆU GIÁO VIÊN TỪ LOCALSTORAGE ĐÃ LƯU KHI ĐĂNG NHẬP
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+
+        async function fetchInstructorDashboard() {
+            if (!currentUser) {
+                location.href = '../account/login.html';
+                return;
+            }
+
+            // Gắn tên giáo viên lên tiêu đề chào mừng
+            document.getElementById('instructor-name').innerText = currentUser.username;
+
+            try {
+                // Gọi API Thống kê chuyên biệt của Giáo viên (API số 2 trong app.py)
+                const res = await fetch(`http://127.0.0.1:5001/api/instructor/${currentUser.id}/stats`);
+                const stats = await res.json();
+                
+                if (res.ok) {
+                    // Đổ dữ liệu động lên giao diện
+                    document.getElementById('stat-courses').innerText = stats.total_courses;
+                    document.getElementById('stat-students').innerText = stats.total_students;
+                    document.getElementById('stat-quizzes').innerText = stats.total_quizzes;
+                }
+            } catch (e) {
+                console.log("Lỗi kết nối API thống kê của giảng viên!");
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            location.href = '../account/login.html';
+        }
+
+        window.onload = fetchInstructorDashboard;
+    </script>
+</body>
+</html>

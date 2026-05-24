@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phản hồi đánh giá | Admin DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css">
+    <link rel="stylesheet" href="/CSS/instructor/course-reviews.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>TEACHER</h2>
+        <nav class="sidebar-nav" id="instructor-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="my-courses.html"><i class="fas fa-book-open"></i> Khóa học của tôi</a>
+            <a href="quiz-management.html"><i class="fas fa-edit"></i> Soạn đề luyện tập</a>
+            <a href="student-grades.html"><i class="fas fa-graduation-cap"></i> Điểm số học viên</a>
+            <a href="course-reviews.html"><i class="fas fa-comments"></i> Phản hồi đánh giá</a>
+            
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="javascript:void(0)" onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Học viên phản hồi & đánh giá</h1>
+        </div>
+        
+        <div class="reviews-grid" id="reviews-list-container">
+            <div class="no-data-msg" style="color: #00d2ff;">Đang tải danh sách phản hồi đánh giá từ học viên...</div>
+        </div>
+    </main>
+
+    <script>
+        /* THẮP SÁNG TAB SIDEBAR HOẠT ĐỘNG */
+        const path = window.location.pathname;
+        document.querySelectorAll('#instructor-nav a').forEach(a => { 
+            const href = a.getAttribute('href');
+            if(href && path.includes(href)) { a.classList.add('active'); }
+        });
+
+        // Đọc thông tin giáo viên đang login
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+
+        // CHỨC NĂNG TẢI REVIEW TỪ API BACKEND
+        async function loadInstructorReviews() {
+            if (!currentUser) { 
+                location.href = '../account/login.html'; 
+                return; 
+            }
+            try {
+                // Gọi API bốc đánh giá theo mã giáo viên
+                const res = await fetch(`http://127.0.0.1:5001/api/instructor/${currentUser.id}/reviews`);
+                const reviews = await res.json();
+                const container = document.getElementById('reviews-list-container');
+
+                if (reviews.length === 0) {
+                    container.innerHTML = `<div class="no-data-msg">Chưa có học viên nào gửi đánh giá cho các khóa học do môn m phụ trách.</div>`;
+                    return;
+                }
+
+                // Vòng lặp sinh thẻ review động, tự động vẽ số sao tương ứng
+                container.innerHTML = reviews.map(r => {
+                    // Tạo chuỗi icon sao dựa trên số sao rating trong DB
+                    let starIcons = '';
+                    for (let i = 0; i < 5; i++) {
+                        if (i < r.rating) {
+                            starIcons += '<i class="fas fa-star"></i> ';
+                        } else {
+                            starIcons += '<i class="far fa-star" style="color: rgba(255,255,255,0.2);"></i> ';
+                        }
+                    }
+
+                    return `
+                        <div class="review-card">
+                            <div class="review-header">
+                                <div class="student-info">
+                                    <h4>${r.student_name}</h4>
+                                    <span class="course-tag"><i class="fas fa-book"></i> ${r.course_title}</span>
+                                </div>
+                                <span class="review-date">${r.created_at}</span>
+                            </div>
+                            <div class="stars">
+                                ${starIcons}
+                            </div>
+                            <p class="review-comment">"${r.comment}"</p>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                document.getElementById('reviews-list-container').innerHTML = `<div class="no-data-msg" style="color: #ff4d6d; font-weight: bold;">❌ Không thể kết nối API danh sách đánh giá!</div>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            location.href = '../account/login.html';
+        }
+
+        window.onload = loadInstructorReviews;
+    </script>
+</body>
+</html>

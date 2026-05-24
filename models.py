@@ -132,15 +132,15 @@ class Coupon(Base):
     expiry_date = Column(DateTime, nullable=False)
     usage_limit = Column(Integer, nullable=False)
 
+
 class Review(Base):
     __tablename__ = "g10reviews"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     course_id = Column(Integer, ForeignKey('g10courses.id'), nullable=False)
     user_id = Column(Integer, ForeignKey('g10users.id'), nullable=False)
-    rating = Column(Integer)
+    rating = Column(Integer, nullable=False)
     comment = Column(String(500))
-    created_at = Column(DateTime)
-
+    created_at = Column(DateTime, default=datetime.datetime.now)
 
 
 class Assignment(Base):

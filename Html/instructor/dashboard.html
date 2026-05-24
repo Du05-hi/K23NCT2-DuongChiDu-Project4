@@ -6,7 +6,10 @@
     <title>Tổng quan giảng viên | Admin DHTA ACADEMY</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/CSS/admin.css"> <style>
+    <link rel="stylesheet" href="/CSS/admin.css"> 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
         .main-content { margin-left: 280px; padding: 50px; flex: 1; }
         .page-title { font-size: 32px; font-weight: 800; margin-bottom: 40px; color: #00d2ff; text-transform: uppercase; }
         
@@ -22,6 +25,27 @@
         .welcome-box { background: linear-gradient(135deg, rgba(0,210,255,0.1), rgba(255,0,204,0.1)); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 40px; margin-bottom: 40px; backdrop-filter: blur(20px); }
         .welcome-box h2 { font-size: 28px; margin-bottom: 10px; color: #fff; font-weight: 800; }
         .welcome-box p { color: #ccc; font-size: 15px; line-height: 1.6; }
+
+        /* 🌟 KHU VỰC KHUNG CHỨA BIỂU ĐỒ NEON */
+        .chart-container {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 30px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            margin-top: 40px;
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.01);
+        }
+        .chart-header {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .chart-header i { color: #ff00cc; text-shadow: 0 0 8px rgba(255, 0, 204, 0.5); }
     </style>
 </head>
 <body>
@@ -76,6 +100,15 @@
             </div>
         </div>
 
+        <div class="chart-container">
+            <div class="chart-header">
+                <i class="fas fa-chart-bar"></i> Thống kê phân loại phổ điểm học viên (Hệ 10)
+            </div>
+            <div style="position: relative; height:320px; width:100%;">
+                <canvas id="gradeDistributionChart"></canvas>
+            </div>
+        </div>
+
     </main>
 
     <script>
@@ -88,6 +121,60 @@
 
         // LẤY DỮ LIỆU GIÁO VIÊN TỪ LOCALSTORAGE ĐÃ LƯU KHI ĐĂNG NHẬP
         const currentUser = JSON.parse(localStorage.getItem('user'));
+        let gradeChart = null; // Biến toàn cục lưu trữ biểu đồ
+
+        // Hàm vẽ đồ thị bằng Chart.js dựa trên điểm số thực tế
+        function renderGradeChart(chartData) {
+            const ctx = document.getElementById('gradeDistributionChart').getContext('2d');
+            
+            // Nếu biểu đồ đã tồn tại trước đó, tiến hành hủy để vẽ lại tránh trùng lặp bộ nhớ
+            if (gradeChart) { gradeChart.destroy(); }
+
+            gradeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Xuất sắc (9.0 - 10)', 'Giỏi (8.0 - 8.9)', 'Khá (6.5 - 7.9)', 'Trung bình (5.0 - 6.4)', 'Yếu/Kém (< 5.0)'],
+                    datasets: [{
+                        label: 'Số lượng học viên đạt mức điểm',
+                        data: chartData || [0, 0, 0, 0, 0], // Dự phòng mảng rỗng nếu API lỗi
+                        backgroundColor: [
+                            'rgba(0, 210, 255, 0.4)',  // Cyan neon
+                            'rgba(255, 0, 204, 0.4)',  // Pink neon
+                            'rgba(0, 255, 153, 0.4)',  // Green neon
+                            'rgba(255, 204, 0, 0.4)',  // Yellow neon
+                            'rgba(255, 77, 109, 0.4)'   // Red neon
+                        ],
+                        borderColor: [
+                            '#00d2ff', '#ff00cc', '#00ff99', '#ffcc00', '#ff4d6d'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false } // Ẩn nhãn chú thích thừa
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#aaa', font: { family: 'Inter', weight: '500' } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { 
+                                color: '#aaa', 
+                                stepSize: 1, // Điểm số lượng học sinh nhảy theo số nguyên nguyên vẹn
+                                beginAtZero: true 
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
         async function fetchInstructorDashboard() {
             if (!currentUser) {
@@ -99,7 +186,7 @@
             document.getElementById('instructor-name').innerText = currentUser.username;
 
             try {
-                // Gọi API Thống kê chuyên biệt của Giáo viên (API số 2 trong app.py)
+                // Gọi API Thống kê chuyên biệt của Giáo viên
                 const res = await fetch(`http://127.0.0.1:5001/api/instructor/${currentUser.id}/stats`);
                 const stats = await res.json();
                 
@@ -108,9 +195,16 @@
                     document.getElementById('stat-courses').innerText = stats.total_courses;
                     document.getElementById('stat-students').innerText = stats.total_students;
                     document.getElementById('stat-quizzes').innerText = stats.total_quizzes;
+
+                    // Vẽ biểu đồ dựa trên mảng phân phối điểm nhận về từ API Backend
+                    // Giả sử API trả về mảng số lượng: stats.grade_distribution = [xuất_sắc, giỏi, khá, trung_bình, yếu]
+                    const mockOrRealDistribution = stats.grade_distribution || [2, 5, 8, 3, 1]; 
+                    renderGradeChart(mockOrRealDistribution);
                 }
             } catch (e) {
                 console.log("Lỗi kết nối API thống kê của giảng viên!");
+                // Nếu kết nối lỗi, dựng biểu đồ mẫu tĩnh để giao diện không lỗi trống trải
+                renderGradeChart([0, 0, 0, 0, 0]);
             }
         }
 

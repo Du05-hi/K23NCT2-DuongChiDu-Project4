@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Điểm số học viên | Admin DHTA ACADEMY</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/CSS/admin.css">
+    <link rel="stylesheet" href="/CSS/instructor/student-grades.css">
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h2>TEACHER</h2>
+        <nav class="sidebar-nav" id="instructor-nav">
+            <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="my-courses.html"><i class="fas fa-book-open"></i> Khóa học của tôi</a>
+            <a href="quiz-management.html"><i class="fas fa-edit"></i> Soạn đề luyện tập</a>
+            <a href="student-grades.html"><i class="fas fa-graduation-cap"></i> Điểm số học viên</a>
+            <a href="course-reviews.html"><i class="fas fa-comments"></i> Phản hồi đánh giá</a>
+            
+            <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 20px 0;"></div>
+            <a href="../home/index.html"><i class="fas fa-home"></i> Trang chủ</a>
+            <a href="javascript:void(0)" onclick="logout()" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Bảng điểm số học viên</h1>
+        </div>
+        
+        <div class="grades-table-container">
+            <table class="grades-table">
+                <thead>
+                    <tr>
+                        <th>Mã kết quả</th>
+                        <th>Tên học viên</th>
+                        <th>Bài luyện tập</th>
+                        <th>Điểm số</th>
+                        <th>Số lần làm</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody id="grades-list-container">
+                    <tr>
+                        <td colspan="6" style="color: #00d2ff; text-align: center; font-style: italic;">Đang tải bảng điểm số học viên...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        /* THẮP SÁNG TAB SIDEBAR HOẠT ĐỘNG */
+        const path = window.location.pathname;
+        document.querySelectorAll('#instructor-nav a').forEach(a => { 
+            const href = a.getAttribute('href');
+            if(href && path.includes(href)) { a.classList.add('active'); }
+        });
+
+        // Lấy thông tin giảng viên đang đăng nhập từ localStorage
+        const currentUser = JSON.parse(localStorage.getItem('user'));
+
+        // CHỨC NĂNG TẢI DANH SÁCH ĐIỂM SỐ TỪ API BACKEND
+        async function loadStudentGrades() {
+            if (!currentUser) { 
+                location.href = '../account/login.html'; 
+                return; 
+            }
+            try {
+                // Gọi API lấy dữ liệu điểm số bắc cầu theo ID giáo viên
+                const res = await fetch(`http://127.0.0.1:5001/api/instructor/${currentUser.id}/student-grades`);
+                const grades = await res.json();
+                const container = document.getElementById('grades-list-container');
+
+                if (grades.length === 0) {
+                    container.innerHTML = `<tr><td colspan="6" style="text-align: center; color: rgba(255,255,255,0.4);">Chưa có học viên nào làm bài thi thuộc môn m phụ trách.</td></tr>`;
+                    return;
+                }
+
+                // Vòng lặp đổ dữ liệu vào bảng table
+                container.innerHTML = grades.map(g => {
+                    // Chuẩn hóa class trạng thái dựa trên điểm số (Ví dụ >= 5 là passed, < 5 là failed)
+                    const badgeClass = g.total_score >= 5 ? 'passed' : 'failed';
+                    const statusText = g.total_score >= 5 ? 'Đạt' : 'Chưa đạt';
+
+                    return `
+                        <tr>
+                            <td><span style="color: #00d2ff; font-weight: bold;">#${g.id}</span></td>
+                            <td><strong>${g.student_name}</strong></td>
+                            <td><span style="color: #aaa;">${g.quiz_title}</span></td>
+                            <td><span class="score-highlight">${g.total_score}</span></td>
+                            <td>${g.attempt_count} lần</td>
+                            <td><span class="status-badge ${badgeClass}">${statusText}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                document.getElementById('grades-list-container').innerHTML = `<tr><td colspan="6" style="text-align: center; color: #ff4d6d; font-weight: bold;">❌ Không thể kết nối API bảng điểm!</td></tr>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            location.href = '../account/login.html';
+        }
+
+        window.onload = loadStudentGrades;
+    </script>
+</body>
+</html>

@@ -129,11 +129,17 @@
                 document.getElementById('display-user-name').innerText = user.username;
                 const actionArea = document.getElementById('welcome-action-area');
                 const role = user.role.toLowerCase().trim();
-                if(role === 'admin') {
-                    actionArea.innerHTML = `<button class="btn-main" onclick="location.href='../admin/dashboard.html'">VÀO QUẢN TRỊ VIÊN</button>`;
-                } else {
-                    actionArea.innerHTML = `<button class="btn-main" onclick="location.href='learning.html'">VÀO HỌC NGAY</button>`;
-                }
+                
+if (role === 'admin') {
+    // Phân quyền 1: Tài khoản Quản trị viên hệ thống
+    actionArea.innerHTML = `<button class="btn-main" onclick="location.href='../admin/dashboard.html'">VÀO QUẢN TRỊ VIÊN</button>`;
+} else if (role === 'instructor') {
+    // Phân quyền 2: Tài khoản Giảng viên phụ trách lớp (Mới bổ sung)
+    actionArea.innerHTML = `<button class="btn-main" onclick="location.href='../instructor/dashboard.html'">VÀO TRANG GIÁO VIÊN</button>`;
+} else {
+    // Phân quyền 3: Tài khoản Học viên tham gia khóa học
+    actionArea.innerHTML = `<button class="btn-main" onclick="location.href='learning.html'">VÀO HỌC NGAY</button>`;
+}
             }
         }
     }

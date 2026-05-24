@@ -1,0 +1,94 @@
+/* =======================================================
+   CSS PHÂN HỆ XEM ĐÁNH GIÁ KHÓA HỌC - STYLE CYBERPUNK
+   ======================================================= */
+.main-content { 
+    margin-left: 280px; 
+    flex: 1; 
+    padding: 50px; 
+}
+
+.page-header {
+    margin-bottom: 40px;
+}
+
+.page-title { 
+    font-size: 32px; 
+    font-weight: 800; 
+    color: #00d2ff; 
+    text-transform: uppercase; 
+    margin: 0;
+}
+
+/* Lưới hiển thị các thẻ đánh giá */
+.reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+    gap: 25px;
+}
+
+/* Thẻ kính mờ hiển thị từng đánh giá */
+.review-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 25px;
+    backdrop-filter: blur(15px);
+    transition: 0.3s;
+}
+
+.review-card:hover {
+    transform: translateY(-3px);
+    border-color: #00d2ff;
+    box-shadow: 0 0 20px rgba(0, 210, 255, 0.15);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.student-info h4 {
+    margin: 0;
+    font-size: 18px;
+    color: #fff;
+}
+
+.course-tag {
+    font-size: 13px;
+    color: #00d2ff;
+    display: block;
+    margin-top: 4px;
+}
+
+.review-date {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* Hệ thống sao đánh giá phát sáng vàng neon */
+.stars {
+    color: #ffb800;
+    font-size: 14px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 8px rgba(255, 184, 0, 0.4);
+}
+
+.review-comment {
+    color: #e0e0e0;
+    font-size: 15px;
+    line-height: 1.6;
+    margin: 0;
+    font-style: italic;
+}
+
+/* Thông báo trống dữ liệu */
+.no-data-msg {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4px;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+    font-size: 16px;
+}

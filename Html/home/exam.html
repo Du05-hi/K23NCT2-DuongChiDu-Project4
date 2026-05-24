@@ -8,7 +8,22 @@
     <link rel="stylesheet" href="../../CSS/main.css">
     <link rel="stylesheet" href="../../CSS/exam.css">
     <style>
-        /* CSS bổ trợ để phần hiển thị câu hỏi và kết quả đồng bộ tone màu */
+        /* CSS bổ trợ hiển thị câu hỏi và kết quả đồng bộ giao diện */
+        .exam-header-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 25px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .student-tag {
+            color: #00d2ff;
+            font-size: 15px;
+            font-weight: bold;
+        }
         .quiz-question-box {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -75,16 +90,23 @@
 </div>
 
 <div class="exam-container">
-    <button class="btn-back" onclick="goBack()">⬅ Quay lại</button>
-    <div class="timer">⏱️ Thời gian: <span id="time">00:00</span></div>
+    <div class="exam-header-info">
+        <button class="btn-back" onclick="goBack()">⬅ Quay lại</button>
+        <div class="student-tag" id="student-info-display">
+            Học viên: <span id="student-username-text" style="color:#fff;">Chưa đăng nhập</span> 
+            <span style="margin: 0 10px; color: rgba(255,255,255,0.2);">|</span>
+            Mã số: <span id="student-id-text" style="color:#fff;">N/A</span>
+        </div>
+        <div class="timer">⏱️ Thời gian: <span id="time">00:00</span></div>
+    </div>
+
     <div class="progress-bar">
         <div id="progress"></div>
     </div>
 
     <h2 id="exam-main-title">Làm bài tập</h2>
 
-    <div id="quiz">
-        </div>
+    <div id="quiz"></div>
 
     <button id="btn-submit-quiz" onclick="submitQuiz()" style="margin-top: 20px;">Nộp bài</button>
 
@@ -97,20 +119,34 @@
     let countdownTimer = null;
     let totalSeconds = 0;
     let initialSeconds = 0;
+    let quizIdFromUrl = null; 
 
-    // 1. TẢI ĐỀ THI TỪ DATABASE KHI LOAD TRANG
+    // 1. ĐỒNG BỘ PHIÊN ĐĂNG NHẬP HỌC VIÊN TỪ LOCALSTORAGE
+    function syncUserSession() {
+        const studentUser = JSON.parse(localStorage.getItem('user'));
+        if (studentUser) {
+            document.getElementById('student-username-text').innerText = studentUser.username;
+            document.getElementById('student-id-text').innerText = `#${studentUser.id}`;
+        } else {
+            document.getElementById('student-info-display').innerHTML = `<span style="color:#ff4d6d; font-weight:bold;">⚠️ Bạn chưa đăng nhập tài khoản học viên!</span>`;
+        }
+    }
+
+    // 2. TẢI ĐỀ THI VÀ XỬ LÝ PARSE TOÀN DIỆN DIỆN DỮ LIỆU CÂU HỎI
     async function loadQuizData() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const quizId = urlParams.get('id');
+        syncUserSession();
 
-        if (!quizId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        quizIdFromUrl = urlParams.get('id');
+
+        if (!quizIdFromUrl) {
             alert("Không tìm thấy ID bài luyện tập!");
             window.location.href = 'training.html';
             return;
         }
 
         try {
-            const response = await fetch(`${API_URL}/quiz/${quizId}`);
+            const response = await fetch(`${API_URL}/quiz/${quizIdFromUrl}`);
             if (!response.ok) {
                 document.getElementById('quiz').innerHTML = `<p style="color: #ff4d6d; text-align:center; font-size:18px;">❌ Không tìm thấy dữ liệu bài tập trong hệ thống!</p>`;
                 document.getElementById('btn-submit-quiz').style.display = 'none';
@@ -118,28 +154,50 @@
             }
 
             const quizData = await response.json();
-            
-            // Cập nhật Tiêu đề bài kiểm tra
             document.getElementById('exam-main-title').innerText = quizData.title;
             
-            // Lưu danh sách câu hỏi
-            currentQuestions = quizData.questions;
+            // XỬ LÝ ÉP KIỂU TOÀN DIỆN CHO MỌI PHÂN HỆ CƠ SỞ DỮ LIỆU
+            currentQuestions = [];
+            if (quizData.questions && Array.isArray(quizData.questions)) {
+                quizData.questions.forEach(item => {
+                    let parsedObj = null;
+
+                    // Trường hợp 1: Phần tử là chuỗi JSON thô hoàn toàn
+                    if (typeof item === 'string') {
+                        try { parsedObj = JSON.parse(item); } catch(e) { parsedObj = null; }
+                    }
+                    // Trường hợp 2: Là đối tượng chứa trường .content dạng chuỗi (Mới thêm vào DB)
+                    else if (item && item.content && typeof item.content === 'string') {
+                        try { parsedObj = JSON.parse(item.content); } catch(e) { parsedObj = null; }
+                    }
+                    // Trường hợp 3: Là đối tượng đã chuẩn hóa sẵn cấu trúc từ trước
+                    else if (item && (item.q || item.question)) {
+                        parsedObj = item;
+                    }
+
+                    if (parsedObj) {
+                        // Đồng bộ giữ lại trường point gốc nếu vật thể con thiếu mất thuộc tính điểm
+                        if (!parsedObj.point && item.point) {
+                            parsedObj.point = item.point;
+                        }
+                        currentQuestions.push(parsedObj);
+                    }
+                });
+            }
             
-            // Thiết lập đồng hồ đếm ngược (đổi số phút từ DB ra giây)
             totalSeconds = quizData.duration * 60;
             initialSeconds = totalSeconds;
             
-            // Khởi chạy giao diện
             startTimer();
             renderQuestions();
 
         } catch (error) {
-            console.error("Lỗi fetch đề thi:", error);
-            document.getElementById('quiz').innerHTML = `<p style="color: #ff4d6d; text-align:center;">Lỗi kết nối Server!</p>`;
+            console.error("Lỗi tải đề thi:", error);
+            document.getElementById('quiz').innerHTML = `<p style="color: #ff4d6d; text-align:center;">Lỗi kết nối Server Backend!</p>`;
         }
     }
 
-    // 2. HIỂN THỊ CÂU HỎI LÊN GIAO DIỆN
+    // 3. ĐỔ DỮ LIỆU CÂU HỎI RA MÀN HÌNH CHUẨN ĐÉT
     function renderQuestions() {
         const quizContainer = document.getElementById('quiz');
         if (currentQuestions.length === 0) {
@@ -148,7 +206,12 @@
         }
 
         quizContainer.innerHTML = currentQuestions.map((qData, qIdx) => {
-            const optionsHtml = qData.options.map((optText, oIdx) => `
+            const questionText = qData.q || qData.question || "Nội dung câu hỏi không xác định";
+            const optionsList = qData.options || [];
+
+            if (optionsList.length === 0) return ''; 
+
+            const optionsHtml = optionsList.map((optText, oIdx) => `
                 <li>
                     <label class="quiz-option-item">
                         <input type="radio" name="question-${qIdx}" value="${oIdx}">
@@ -159,7 +222,7 @@
 
             return `
                 <div class="quiz-question-box">
-                    <div class="quiz-question-title">Câu ${qIdx + 1}: ${qData.q} <span style="color:var(--cyan); font-size:14px;">(${qData.point}đ)</span></div>
+                    <div class="quiz-question-title">Câu ${qIdx + 1}: ${questionText} <span style="color:#00d2ff; font-size:14px;">(${qData.point || 2}đ)</span></div>
                     <ul class="quiz-options-list">
                         ${optionsHtml}
                     </ul>
@@ -168,7 +231,7 @@
         }).join('');
     }
 
-    // 3. ĐỒNG HỒ ĐẾM NGƯỢC & THANH TIẾN ĐỘ
+    // 4. ĐỒNG HỒ ĐẾM NGƯỢC THỜI GIAN LÀM BÀI
     function startTimer() {
         const timeDisplay = document.getElementById('time');
         const progressBar = document.getElementById('progress');
@@ -185,67 +248,93 @@
 
             totalSeconds--;
             
-            // Định dạng hiển thị phút:giây
             const mins = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
             const secs = (totalSeconds % 60).toString().padStart(2, '0');
             timeDisplay.innerText = `${mins}:${secs}`;
 
-            // Cập nhật thanh tiến độ co dãn theo thời gian trôi qua
             const progressPercent = ((initialSeconds - totalSeconds) / initialSeconds) * 100;
             progressBar.style.width = `${progressPercent}%`;
 
         }, 1000);
     }
 
-    // 4. LOGIC NỘP BÀI & TỰ ĐỘNG CHẤM ĐIỂM THEO HỆ SỐ POINT
-    function submitQuiz() {
-        clearInterval(countdownTimer); // Dừng đồng hồ
+    // 5. TÍNH TOÁN ĐIỂM SỐ VÀ BẮN API LƯU KẾT QUẢ VÀO SQL SERVER
+    async function submitQuiz() {
+        clearInterval(countdownTimer);
 
         let totalScore = 0;
         let userScore = 0;
         let correctCount = 0;
 
         currentQuestions.forEach((qData, qIdx) => {
-            totalScore += qData.point; // Cộng dồn tổng điểm tối đa của đề thi
+            const questionPoint = parseFloat(qData.point || 2);
+            totalScore += questionPoint;
             
             const selectedOpt = document.querySelector(`input[name="question-${qIdx}"]:checked`);
             if (selectedOpt) {
                 const answerIndex = parseInt(selectedOpt.value);
-                if (answerIndex === qData.answer) {
-                    userScore += qData.point; // Trúng đáp án đúng thì cộng điểm của câu đó vào
+                const correctAnswer = qData.answer !== undefined ? qData.answer : qData.correct_answer;
+                
+                if (answerIndex === parseInt(correctAnswer)) {
+                    userScore += questionPoint;
                     correctCount++;
                 }
             }
         });
 
-        // Hiển thị khung kết quả trực quan ra màn hình
+        const finalScore10 = parseFloat(((userScore / totalScore) * 10).toFixed(1));
+
         document.getElementById('result').innerHTML = `
             <div id="result-box">
                 <h3>🎉 KẾT QUẢ BÀI LÀM</h3>
                 <p>Số câu trả lời đúng: <strong>${correctCount} / ${currentQuestions.length}</strong> câu</p>
-                <p>Điểm số đạt được: <strong style="color:#00d2ff; font-size:24px;">${userScore.toFixed(1)}</strong> / <strong>${totalScore.toFixed(1)}</strong> điểm</p>
+                <p>Điểm số đạt được: <strong style="color:#00d2ff; font-size:24px;">${finalScore10}</strong> / 10 điểm</p>
+                <p style="font-size:14px; color:#aaa; margin-top:5px;">(Điểm gốc câu hỏi: ${userScore.toFixed(1)} / ${totalScore.toFixed(1)})</p>
                 <button onclick="location.href='training.html'" class="btn-ok" style="margin-top:15px; padding:10px 20px; border-radius:8px; cursor:pointer; background:#ff00ea; color:#fff; border:none; font-weight:bold;">Hoàn tất</button>
             </div>
         `;
 
-        // Cuộn màn hình xuống khu vực hiển thị kết quả
         document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
         document.getElementById('btn-submit-quiz').disabled = true;
+
+        const studentUser = JSON.parse(localStorage.getItem('user'));
+        if (!studentUser) {
+            alert("⚠️ Cảnh báo: Không tìm thấy phiên đăng nhập học sinh! Kết quả điểm thi không thể đồng bộ vào cơ sở dữ liệu.");
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_URL}/student/quiz/submit`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    user_id: studentUser.id,
+                    quiz_id: parseInt(quizIdFromUrl),
+                    total_score: finalScore10
+                })
+            });
+            const data = await res.json();
+            if (data.status === "success") {
+                console.log("✓ Hệ thống đã đồng bộ thành công kết quả điểm thi vào SQL Server!");
+            } else {
+                alert("❌ Lỗi đồng bộ điểm số: " + data.message);
+            }
+        } catch (err) {
+            console.error("Lỗi kết nối API nộp bài:", err);
+            alert("❌ Không thể kết nối với máy chủ để lưu điểm số thi!");
+        }
     }
 
-    // 5. ĐIỀU HƯỚNG & MODAL XÁC NHẬN THOÁT
+    // 6. ĐIỀU HƯỚNG VÀ MODAL XÁC NHẬN THOÁT THI
     function goBack() {
-        // Hiện Modal cảnh báo
         document.getElementById('confirmModal').style.display = 'flex';
     }
 
     function closeConfirm() {
-        // Đóng Modal cảnh báo
         document.getElementById('confirmModal').style.display = 'none';
     }
 
     function confirmExit() {
-        // Xác nhận thoát thì quay về trang quản lý luyện tập
         window.location.href = 'training.html';
     }
 
